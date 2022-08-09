@@ -1,0 +1,295 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 41,
+   "id": "8040c0d6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "## here we are going to evaluate a gaussian probability function given a vector of positions, means and a cov matrix\n",
+    "%matplotlib inline\n",
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "0930637e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def log_prob(x, mu, cov):\n",
+    "    diff = x-mu\n",
+    "    return -0.5 * np.dot(diff, np.linalg.solve(cov, diff))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "b639f384",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ndim = 3\n",
+    "\n",
+    "np.random.seed(42)\n",
+    "means = np.random.rand(ndim)\n",
+    "\n",
+    "cov = np.random.rand(ndim**2).reshape((ndim, ndim))\n",
+    "cov = 0.5 - cov\n",
+    "cov = np.triu(cov)\n",
+    "cov += cov.T - np.diag(cov.diagonal())\n",
+    "cov = np.dot(cov, cov)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "id": "262c151e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nwalkers = 10\n",
+    "p0 = np.random.rand(nwalkers, ndim)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "id": "817f2c46",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "State([[-0.1356742   1.41518666  1.2922602 ]\n",
+       " [ 0.06399084  1.40461973  1.27090893]\n",
+       " [ 1.09033144  0.07220402 -0.50029999]\n",
+       " [ 0.41986043  0.53950856  0.45167596]\n",
+       " [ 0.00270305  1.68154379  1.68225681]\n",
+       " [ 1.02729369  0.57685119  0.92712996]\n",
+       " [ 0.6547429   0.59423212  0.58255035]\n",
+       " [ 0.62114854  0.86682153  0.49452235]\n",
+       " [ 0.19876379  0.47797966  0.80523661]\n",
+       " [ 1.12788936  0.64706519 -0.06338449]], log_prob=[-0.5651965  -0.56289339 -2.46320651 -0.75768992 -2.1936795  -3.28676675\n",
+       " -0.31688575 -0.18302765 -1.78415507 -1.62531493], blobs=None, random_state=('MT19937', array([1974748257, 2064243338, 1549864220, 3527943659, 2312326292,\n",
+       "       2409450260, 1861971661, 2926064363, 4120552649, 4232598530,\n",
+       "       3935605784,  543411562,  558887916, 1034202995, 3409318173,\n",
+       "       3375514350, 2599145522, 3117712724,  635099089,  992441258,\n",
+       "       3025295759, 1716341554, 1690855472, 1896075837,  254423559,\n",
+       "       2981995957,  845974119, 1043044718, 1107926117, 2349335769,\n",
+       "       3925256523,  500137490, 1426678772, 3284421418, 2013199694,\n",
+       "       1456003060, 2559011682, 1131445338, 2919687334, 4095569111,\n",
+       "       1462549744, 4178881456,  128394880, 4194429405, 2178235026,\n",
+       "       1869848775, 1608138899, 1182179487,  158691848, 2369795976,\n",
+       "        482337620, 1874816982, 2556887826, 3107720189, 3032761464,\n",
+       "       1173469768, 2555010622,  844323116, 2703714653,  879640995,\n",
+       "       3897280055,  202918141, 2659796653, 2843002462, 1828018618,\n",
+       "       3435469684, 1343028907, 1381524506, 3446672918, 4290888073,\n",
+       "       2996976342, 3663610862, 2557554116, 3890005997, 2725918595,\n",
+       "        459181083, 1388004535, 3095099458, 2234456993,  974430196,\n",
+       "       3678387855, 1884235252, 2442597992, 1142066042,  737636450,\n",
+       "        928570779, 1136643921,  780168932, 2874908485, 1830188838,\n",
+       "       2719392608,   29614871,  396810999, 1250888537, 4280425153,\n",
+       "       1412244794, 2721486553, 4283183961, 2129784228,  888875730,\n",
+       "       3322680258, 1990587871, 3626768152, 1942141339, 2762855193,\n",
+       "       4169546115,  211729663, 3729564810, 3805488018, 3652610073,\n",
+       "       2700501957,  719752792, 1165487453,  208013024,  516221393,\n",
+       "       1541056380, 4086080077, 2644495416, 1877446829, 2839400265,\n",
+       "       2645292856,  265250788, 3506378653, 3246851388,  590970152,\n",
+       "       2538310156, 1839026592, 3365854310, 2339982597, 1173861114,\n",
+       "        870868710, 4170477760, 3369144991, 3298885570, 3079856053,\n",
+       "       2873518045, 3261417550,  953392010,  928353924,  677347296,\n",
+       "       2645366040,  926495887, 1327548550, 3985890539, 1833450400,\n",
+       "       2010580089, 1957944248, 1628383793, 1995314431, 2152949377,\n",
+       "        176782578, 1428734100,  745562697, 3488829653, 1731470432,\n",
+       "       1144615000, 2399243385, 2546743556, 1348170320, 3388206322,\n",
+       "       3658038291, 2001039536, 4288826529, 3067535903, 3917393517,\n",
+       "       3741188277, 3168078929, 3672285869, 4248507072,  599108040,\n",
+       "       1724441586, 4071477031,  880675616,  514128904, 1439381934,\n",
+       "       2467854448, 3612504993, 1585883753,  833833067, 1743833976,\n",
+       "       1145762550, 2361087726, 1107679442, 3643331890, 2696468198,\n",
+       "       3204291156, 3520021055, 1209934868,  338421602, 1226750754,\n",
+       "       3484795476, 2905072723,  400401274,  330645750, 3337189670,\n",
+       "       3905355400, 1895351426, 2469817970, 2239312967, 1079047842,\n",
+       "       1984359074,   43535717, 1215480424, 1726683136, 2546667987,\n",
+       "       1930137521, 2384656364,  481304591, 3602386942, 3201719272,\n",
+       "       3398741597,  224450492,  726902585, 3338152995, 2045147308,\n",
+       "        382032075,  366258069, 2981057005, 2313038442,  821369819,\n",
+       "       1753187399, 3850127771, 1221902355, 4112382446, 2549988285,\n",
+       "       2410877131, 3528027625, 3697065654, 4022411251, 1951640784,\n",
+       "       1842004543, 3373897437, 3910343705,  539928669,  366393020,\n",
+       "       3043971007, 4056950647, 4139734948,   64556922, 3494234130,\n",
+       "       2782921518, 1407830996,  543847440, 3894008671,  886872181,\n",
+       "       4091591436, 4180129544, 2075251598, 4090562196, 1998020331,\n",
+       "        861141159, 3748125745, 1753975621, 4047201019,   68938001,\n",
+       "       1977187159, 3088274686,  697187030, 1812738509, 3584129219,\n",
+       "       1679342380, 2361225325, 1924306479,   41320847,   96463685,\n",
+       "       3331020020, 3198383708,  485130503, 4121370210, 1337168881,\n",
+       "       2577010601,   14339948, 2010262622, 3410587008, 4109939738,\n",
+       "        410978644, 2351188735, 2580062789, 3096043870, 1312102188,\n",
+       "       2869644615, 4033291786,   85596045, 1964223461, 1335088416,\n",
+       "       3981608494, 2734215402, 4232575512, 3980864308, 1059077405,\n",
+       "       3058301771, 1507043655, 3133487530, 1752314939, 1958706438,\n",
+       "       1443334035, 2033210192, 2815789107, 1209210664, 1536956210,\n",
+       "        423989532, 1774097975, 3465349566, 1700350358, 3920402731,\n",
+       "       3817596642, 2368535020, 3651531124,  963789580, 3266581921,\n",
+       "       3649090267, 1434448234, 4241268114, 3382517707, 1512038456,\n",
+       "       1474033583, 1532102133, 2227164604, 2587349243, 1091448237,\n",
+       "       3076520283,  856518095,  403321951,  556076534,  297246909,\n",
+       "       1246651359, 2802070854,  617688563, 1595454407, 3484713367,\n",
+       "       2558221409, 1701048163, 3278057119,  599778911,  314898222,\n",
+       "       2592560963,  412369783,  414167495, 2615536413, 2049875312,\n",
+       "       1441361527, 2865971335, 3553556104, 4158876787,  753258638,\n",
+       "       1401776060, 2734891742, 2303496180, 3679485773, 4182522479,\n",
+       "       1310836676, 3745736074, 2867721628, 3880768826, 1572425093,\n",
+       "       2627944618, 3305609376,  330130584,  958336047,   10258977,\n",
+       "        488331592, 1777014663, 3467966505, 3710938171,  901410411,\n",
+       "        691242032, 1664529087, 3100389778, 1476223319, 1764944538,\n",
+       "        588899155,  255673541, 1027668587, 1564788529, 1301086009,\n",
+       "       3800012451,  307499849, 2647157856,  542934310, 1155599481,\n",
+       "       3985624951, 2432154994,  933096674, 3542424306, 3964280377,\n",
+       "       3068531910,  575991622,  102491066, 2491677662,   26859245,\n",
+       "       3606303146, 1902217426, 1716738749,  601879590, 3281925459,\n",
+       "       3768445295, 3611438572,  354099882, 1519924474,  151433158,\n",
+       "       3925480090, 2997549403, 3739251734,  398815727, 2236133912,\n",
+       "       3255391459, 3103832700,  815834253, 1346130957,  300113168,\n",
+       "       2584439166, 1155541968, 3541129151, 4165998545,  756625648,\n",
+       "       3951974612,  799674393, 2536995410, 4176849901, 1274870540,\n",
+       "       2366952822, 1984929249, 2230777222, 3173169728, 3967764486,\n",
+       "       3393089982,  898947907, 2604735171, 2115293078, 2839308443,\n",
+       "       2701756159, 2625664169, 3275278196, 3857788741, 2853651262,\n",
+       "       3294948532,  332675582,   83689317, 4204637862,  394066106,\n",
+       "       1321288840,  311974837, 1353351328, 3340347828, 3574889537,\n",
+       "       2930313951,  898731101, 2558293906,  452978899, 1298910992,\n",
+       "       1495900852, 1401710683, 3081523800,  287834997, 1131093484,\n",
+       "       1638555995, 1151340307, 1181282301,  859346778,  165431599,\n",
+       "       3977308600, 1335794122,  349352519, 1001446420, 3091114528,\n",
+       "       1524014628, 2995248506, 3246670544,  516875081, 2124795754,\n",
+       "       1633456123, 3047930632, 3895550579, 2957773194,  978103438,\n",
+       "        519010882,  859833472, 2550511004,  154530778, 2879748166,\n",
+       "         42915307,  188226390, 3133860496, 2274472872, 3800692742,\n",
+       "       3287410294, 1174914506, 1757309642, 1084590569, 1719142773,\n",
+       "       2738633278, 2202516907, 1480351941, 1480399678, 3291416540,\n",
+       "       1490455809,   40544627, 3364297526, 3885328754, 1484716799,\n",
+       "        472204678, 2920659477, 1161366312, 3622499906,  991911582,\n",
+       "       2097010396, 2687184244, 3410886344, 1730957767, 3432220268,\n",
+       "        241960094, 1969884452, 3637397495, 1083760188, 3537648744,\n",
+       "       3067816732,   53461931, 3759576314, 1550477668,    9922993,\n",
+       "        216123368,  579728757, 3075001821, 1093875077, 1288467429,\n",
+       "       1940271526, 2402710440,  670808455,  758164936, 1410839613,\n",
+       "       2313090726, 3436123211, 3208823821,  341481969,  570288146,\n",
+       "       3823287625, 3036054507, 2462021865, 1962124395, 4088637761,\n",
+       "       3278881611, 1463889459, 2639016808,  540650100, 1700659878,\n",
+       "       3141290338, 1227493260, 1908406937,  652455171, 1579815091,\n",
+       "        474804996, 2163885742,  562375862, 2966406396, 1506377811,\n",
+       "       2237211283, 4273029435, 1872876450, 2644551299, 1121601309,\n",
+       "       3671837499, 3216309308, 1321121206, 1369383539,  135217730,\n",
+       "        999107800, 2062630416,  921297966, 2992577546, 1043970604,\n",
+       "       1790872597,  784048864, 3320321924, 2017738440, 2419400357,\n",
+       "       2823561684, 1628212718,  726618448, 1206846967,  679717666,\n",
+       "        990500066, 1525334823, 3413716879,  801569915, 3885286467,\n",
+       "       2085415770, 4094962960, 3780798393,  924542706,  694920021,\n",
+       "        216583395, 2883627501, 3715871828, 4183589357, 2501757427,\n",
+       "       1008513127,  345269676, 3796458306, 1151910966, 2980180361,\n",
+       "       1372814185, 1412516697, 1015002545, 2083231699, 3479549897,\n",
+       "       1261533862,   60796875, 2277948095,  760372480, 2743598821,\n",
+       "        600184525, 3378256692, 1272696075, 4034081822,  384744896,\n",
+       "       1397573968,  250616867, 2980342480, 2336359851, 1311831047,\n",
+       "       4033015471, 4205432420, 3164983268, 1955643139], dtype=uint32), 401, 0, 0.0))"
+      ]
+     },
+     "execution_count": 25,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "import emcee\n",
+    "\n",
+    "sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob, args=[means, cov])\n",
+    "\n",
+    "state = sampler.run_mcmc(p0, 100)\n",
+    "sampler.reset()\n",
+    "\n",
+    "sampler.run_mcmc(state, 10000)\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "id": "00343939",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<Figure size 432x288 with 1 Axes>"
+      ]
+     },
+     "metadata": {
+      "needs_background": "light"
+     },
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "import matplotlib.pyplot as plt\n",
+    "\n",
+    "samples = sampler.get_chain(flat=True)\n",
+    "plt.hist(samples[:,0], 100, color='k', histtype='step')\n",
+    "plt.xlabel(r\"$\\theta_1$\")\n",
+    "plt.ylabel(r\"p($\\theta_1$)\")\n",
+    "plt.gca().set_yticks([]);"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "65472f6a",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c541a253",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4af7374f",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
