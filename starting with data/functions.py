@@ -1,5 +1,3 @@
-## remember to add extinction to their data!!!
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -8,10 +6,17 @@ from astropy import constants as const
 import astropy
 import pysynphot as S
 import emcee
+from multiprocessing import Pool
+import corner
+
+
+
+
 
 k = 1
 M_c = 1
 distance = 26.4 * 10**6 * u.pc
+labels = ["v85", "R13", "M_e", "offset"]
 # theta = [v85, R13, M_e, offset]
 
 def f_p(n, M_e):
@@ -49,7 +54,6 @@ def T(n, t, theta):
     """
     v85, R13, M_e, offset = theta
     t_offset = t - offset
-    print(t, t_offset)
     if n == 3 / 2:
         nums = [2.05, 0.027]
     else:
@@ -88,8 +92,8 @@ def log_prior(theta):
     v85, R13, M_e, offset = theta
     R_e = R13 * 1e13
     v_e = v85 * 10 ** 8.5
-    if R_e > 1e10 and R_e < 1e14 and v_e > 100e5 and v_e < 100000e5 and M_e > 0.005 and M_e < 1 and \
-            offset > 0.70342593 and offset < 0.73376157:
+    if 1e10 < R_e < 1e14 and 100e5 < v_e < 100000e5 and 0.005 < M_e < 1 and \
+            0.70342593 < offset < 0.73376157:
         return 0  # log(1)
     else:
         return -np.inf  # log(0)
@@ -130,32 +134,79 @@ def log_postirior(theta, n, t, meas_mag, meas_mag_err):
         return -np.inf
     return lp + log_likelihood(n, theta, t, meas_mag, meas_mag_err)
 
-def set_walkers():
+
+def set_walkers(nwalkers):
     """
     # initialize walkers -  theta = [v85, R13, M_e, offset]
     """
     initial_guess = [1.7, 0.4, 0.02, 0.715]
     initial_spread = [0.2, 0.2, 0.002, 0.01]
 
-    return np.random.randn(32, 4) * initial_spread + initial_guess
+    return np.random.randn(nwalkers, 4) * initial_spread + initial_guess
 
 
-
-path = r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\excel files\combined_data.xlsx"
-
-data = pd.read_excel(path, sheet_name='after extinction')
-
-t = np.array(data.loc[:, 'JD - 2457651.0[day]'])
-meas_mag = np.array(data.loc[:, 'V[mag]'])
-meas_mag_err = np.array(data.loc[:, 'error_V[mag]'])
+def t_bigger_than(n, theta):
+    v85, R13, M_e, offset = theta
+    return 0.2 * R13 * v85 ** -1 * max(0.5, (R13 ** 0.4 * (f_p(n, M_e) * k * (M_e + M_c) ** -0.2 * v85 ** -0.7)))
 
 
+def t_smaller_than(n, theta):
+    v85, R13, M_e, offset = theta
+    return 7.4 * (R13 / k) ** 0.55
 
 
-n = 3
-initial_pos = set_walkers()
-nwalkers, ndim = initial_pos.shape
+def get_data(file_path, sheet_name):
+    data = pd.read_excel(file_path, sheet_name=sheet_name)
 
-sampler = emcee.EnsembleSampler(nwalkers, ndim, log_postirior,
-                                args=(n, t, meas_mag, meas_mag_err))
-sampler.run_mcmc(initial_pos, 5000, progress=True);
+    t = np.array(data.loc[:, 'JD - 2457651.0[day]'])
+    meas_mag = np.array(data.loc[:, 'V[mag]'])
+    meas_mag_err = np.array(data.loc[:, 'error_V[mag]'])
+
+    return t, meas_mag, meas_mag_err
+
+
+def get_sampler(file_name, n, nwalkers, steps, x, y, yerr):
+    initial_pos = set_walkers(nwalkers)
+    nwalkers, ndim = initial_pos.shape
+
+    backend = emcee.backends.HDFBackend(file_name)
+    backend.reset(nwalkers, ndim)
+
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_postirior, backend=backend, args=(n, x, y, yerr))
+
+    sampler.run_mcmc(initial_pos, steps, progress=True)
+
+
+def get_histograms(sampler, file_name, labels):
+    fig, axes = plt.subplots(4, figsize=(10, 7), sharex=True)
+    samples = sampler.get_chain()
+    for i in range(4):
+        ax = axes[i]
+        ax.plot(samples[:, :, i], "k", alpha=0.3)
+        ax.set_xlim(0, len(samples))
+        ax.set_ylabel(labels[i])
+        ax.yaxis.set_label_coords(-0.1, 0.5)
+
+    axes[-1].set_xlabel("step number")
+    plt.savefig(file_name)
+
+
+def draw_lines_dots(flat_samples, x, y, yerr, n, file_name, start=0.01, end=3.5):
+    inds = np.random.randint(len(flat_samples), size=100)
+    time = np.linspace(start, end)
+    for ind in inds:
+        theta = flat_samples[ind]
+        v85, R13, M_e, offset = theta
+        plt.plot(time + offset, get_mag(n, time + offset, theta), "C1", alpha=0.1)
+
+    plt.errorbar(x, y, yerr=yerr, fmt=".k", capsize=0)
+
+    plt.xlabel('JD - 2457651.0[day]')
+    plt.ylabel('V[mag]')
+    plt.gca().invert_yaxis()
+    plt.grid()
+    plt.savefig(file_name)
+
+def get_corner(flat_samples, file_name, labels):
+    fig = corner.corner(flat_samples, labels=labels)
+    fig.savefig(file_name)

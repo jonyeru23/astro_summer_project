@@ -36,7 +36,7 @@ figpath = '/Users/iair/Documents/LCOGT/Projects/SN2016gkg/'
 def date2jd(inputdate):
 
     jd0 = 2451544.5 # On Jan 1, 2000 00:00:00
-    td = inputdate-datetime.datetime(2000,01,01,00,00,00)
+    td = inputdate-datetime.datetime(2000,1,1,00,00,00)
 
     return ((td.days*86400)+td.seconds)/float(86400)+jd0
 
@@ -611,7 +611,7 @@ def plot_lc(re=None,me=None,ve=None,toffset=None,bersten=False):
     plottable.columns['JD'].format='0.3f'
     plottable.columns['Magnitude'].format='0.3f'
     plottable.columns['Magnitude_Error'].format='0.3f'
-    print plottable
+    print(plottable)
     plottable.write('fig1data_extinction_corrected_final.txt',format='ascii')
 
     # Abs Mag Axis
@@ -1223,8 +1223,8 @@ else:
         results_line = np.reshape(results,[1,9])
     else:
         results_line = np.reshape(results,[1,12])
-    print results_line
-    print ''
+    print(results_line)
+    print('')
     
     if velocity == 'fixed':    
         s = '{} {} {} {} {} {} {} {} {}\n'.format(*results_line[0])
