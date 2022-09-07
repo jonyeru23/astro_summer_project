@@ -8,9 +8,8 @@ import pysynphot as S
 import emcee
 from multiprocessing import Pool
 import corner
-
-
-
+import os
+import shutil
 
 
 k = 1
@@ -100,10 +99,12 @@ def log_prior(theta):
 
 
 def log_likelihood(n, theta, t, meas_mag, meas_mag_err):
-    meas_flux = mag_to_flux(meas_mag)
-    meas_flux_err = mag_to_fluxerr(meas_mag, meas_mag_err)
+    rel_t, rel_mag, rel_mag_err = get_rel_data(t, meas_mag, meas_mag_err, n, theta)
 
-    expected_flux = mag_to_flux(get_mag(n, t, theta))
+    meas_flux = mag_to_flux(rel_mag)
+    meas_flux_err = mag_to_fluxerr(rel_mag, rel_mag_err)
+
+    expected_flux = mag_to_flux(get_mag(n, rel_t, theta))
 
     chi2 = get_chi2(meas_flux, meas_flux_err, expected_flux)
 
@@ -111,6 +112,11 @@ def log_likelihood(n, theta, t, meas_mag, meas_mag_err):
 
     return -0.5 * np.sum(normalization + chi2)
 
+def get_rel_data(t, mag, mag_err, n, theta):
+    rel_t = t[t > t_bigger_than(n, theta)]
+    rel_mag = mag[(len(t) - len(rel_t)):]
+    rel_mag_err = mag_err[(len(t) - len(rel_t)):]
+    return rel_t, rel_mag, rel_mag_err
 
 def mag_to_flux(mag):
     return 10 ** (-0.4 * mag)
@@ -177,7 +183,8 @@ def get_sampler(file_name, n, nwalkers, steps, x, y, yerr):
     sampler.run_mcmc(initial_pos, steps, progress=True)
 
 
-def get_histograms(sampler, file_name, labels):
+def get_histograms(sampler, file_path, labels, n):
+    plt.clf()
     fig, axes = plt.subplots(4, figsize=(10, 7), sharex=True)
     samples = sampler.get_chain()
     for i in range(4):
@@ -188,25 +195,48 @@ def get_histograms(sampler, file_name, labels):
         ax.yaxis.set_label_coords(-0.1, 0.5)
 
     axes[-1].set_xlabel("step number")
-    plt.savefig(file_name)
+    if 'binning' in file_path:
+        plt.title(f'n={n} binning')
+    else:
+        plt.title(f'n={n} no binning')
+    plt.savefig(file_path)
 
 
-def draw_lines_dots(flat_samples, x, y, yerr, n, file_name, start=0.01, end=3.5):
+def get_lines_dots(flat_samples, x, y, yerr, n, file_path, start=0.01, end=3.5, close_up=False):
+    plt.clf()
     inds = np.random.randint(len(flat_samples), size=100)
     time = np.linspace(start, end)
     for ind in inds:
         theta = flat_samples[ind]
+        if close_up:
+            time = np.linspace(t_bigger_than(n, theta), 0.02)
         v85, R13, M_e, offset = theta
-        plt.plot(time + offset, get_mag(n, time + offset, theta), "C1", alpha=0.1)
+        plt.plot(time, get_mag(n, time + offset, theta), "C1", alpha=0.1)
 
-    plt.errorbar(x, y, yerr=yerr, fmt=".k", capsize=0)
+    plt.errorbar(x - offset, y, yerr=yerr, fmt=".k", capsize=0)
 
-    plt.xlabel('JD - 2457651.0[day]')
+    plt.xlabel(f'JD - {2457651.0+offset}[day]')
     plt.ylabel('V[mag]')
+    if 'binning' in file_path:
+        plt.title(f'n={n} binning')
+    else:
+        plt.title(f'n={n} no binning')
     plt.gca().invert_yaxis()
     plt.grid()
-    plt.savefig(file_name)
+    plt.savefig(file_path)
 
-def get_corner(flat_samples, file_name, labels):
+
+def get_corner(flat_samples, file_path, labels, n):
     fig = corner.corner(flat_samples, labels=labels)
-    fig.savefig(file_name)
+    fig.savefig(file_path)
+
+
+def take_h5_files(folder_name):
+    # os.mkdir(folder_name)
+
+    ## move the h5 to the other folder
+    for file in os.listdir():
+        if 'h5' in file:
+            shutil.move(file, f'/{folder_name}')
+
+
