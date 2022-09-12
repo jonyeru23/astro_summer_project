@@ -2,86 +2,21 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ee90ec9a-244f-4b62-98f6-75b4b0228df2" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SW16/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SW16/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SW16/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SW16/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SW16/.idea/starting with data.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SW16/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SW16/models/with t bigger/1.5 binning/n=1.5_after ext binning.h5" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SW16/models/with t bigger/1.5 no binning/n=1.5_after ext.h5" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SW16/models/with t bigger/3 binning/n=3.0_after ext binning.h5" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SW16/models/with t bigger/3 no binning/n=3_after ext.h5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/.idea/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/starting with data.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/starting with data.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/.ipynb_checkpoints/POC-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/.ipynb_checkpoints/POC-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/.ipynb_checkpoints/final_showdown-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/.ipynb_checkpoints/final_showdown-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/.ipynb_checkpoints/make graph sanity-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/.ipynb_checkpoints/make graph sanity-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/.ipynb_checkpoints/making_combined-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/.ipynb_checkpoints/making_combined-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/.ipynb_checkpoints/making_comibned-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/.ipynb_checkpoints/making_comibned-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/.ipynb_checkpoints/seeing_if_there_is_something_to_do-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/.ipynb_checkpoints/seeing_if_there_is_something_to_do-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/.ipynb_checkpoints/testing_if_i_know_it-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/.ipynb_checkpoints/testing_if_i_know_it-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/.ipynb_checkpoints/xlsx_scripts-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/.ipynb_checkpoints/xlsx_scripts-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/POC.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/POC.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/final_showdown.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/final_showdown.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/make graph sanity.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/make graph sanity.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/making_combined.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/making_combined.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/seeing_if_there_is_something_to_do.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/seeing_if_there_is_something_to_do.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/all the notebooks/xlsx_scripts.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/all the notebooks/xlsx_scripts.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/excel files/their_data.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/excel files/their_data.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fit_piro_sapir.py" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/fit_piro_sapir.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/make_figs.py" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/make_figs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=1.5 binning/close_points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=1.5 binning/close_points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=1.5 binning/close_points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=1.5 binning/close_points_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=1.5 binning/corner_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=1.5 binning/corner_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=1.5 binning/hist_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=1.5 binning/hist_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=1.5 binning/n=1.5_after ext binning.h5" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=1.5 binning/n=1.5_after ext binning.h5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=1.5 binning/points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=1.5 binning/points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=1.5 binning/points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=1.5 binning/points_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=3 binning/close_points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=3 binning/close_points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=3 binning/close_points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=3 binning/close_points_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=3 binning/corner_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=3 binning/corner_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=3 binning/hist_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=3 binning/hist_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=3 binning/n=3_after ext binning.h5" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=3 binning/n=3_after ext binning.h5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=3 binning/points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=3 binning/points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/n=3 binning/points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/n=3 binning/points_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_binning/close_points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_binning/close_points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_binning/close_points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_binning/close_points_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_binning/corner_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_binning/corner_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_binning/hist_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_binning/hist_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_binning/n=1.5_after ext binning.h5" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_binning/n=1.5_after ext binning.h5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_binning/points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_binning/points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_binning/points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_binning/points_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_no_binning/close_points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_no_binning/close_points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_no_binning/close_points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_no_binning/close_points_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_no_binning/corner_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_no_binning/corner_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_no_binning/hist_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_no_binning/hist_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_no_binning/n=1.5_after ext.h5" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_no_binning/n=1.5_after ext.h5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_no_binning/points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_no_binning/points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=1.5_no_binning/points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=1.5_no_binning/points_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_binning/close_points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_binning/close_points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_binning/close_points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_binning/close_points_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_binning/corner_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_binning/corner_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_binning/hist_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_binning/hist_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_binning/n=3.0_after ext binning.h5" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_binning/n=3.0_after ext binning.h5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_binning/points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_binning/points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_binning/points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_binning/points_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_no_binning/close_points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_no_binning/close_points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_no_binning/close_points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_no_binning/close_points_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_no_binning/corner_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_no_binning/corner_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_no_binning/hist_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_no_binning/hist_after ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_no_binning/n=3.0_after ext.h5" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_no_binning/n=3.0_after ext.h5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_no_binning/points_after ext binning.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_no_binning/points_after ext binning.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/new models/n=3_no_binning/points_after ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SW16/models/4200 models/n=3_no_binning/points_after ext.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SWN16-Sushaman/SWN_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SWN16-Sushaman/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
@@ -97,7 +32,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/SW16/make_figs.py" />
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.main">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="starting with data" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -111,6 +46,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/SW16/make_figs.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="starting with data" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\ProgramData\Anaconda3\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/SW16" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/SWN16-Sushaman/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -140,6 +96,11 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -162,5 +123,6 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
 </project>
