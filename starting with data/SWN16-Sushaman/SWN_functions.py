@@ -11,6 +11,9 @@ Only time has units
 """
 ###########################################################################
 def L_7(theta, time):
+    """
+    the function to creat smooth power law
+    """
     offset = theta[3]
     time_offset = time - offset
     L = np.zeros(time_offset.shape)
