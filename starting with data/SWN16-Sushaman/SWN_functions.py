@@ -6,23 +6,20 @@ theta = [R500, M15, E51, offset]
 
 All the functions will be designed to individual points
 The default value of time is days.
-R, M, E and offset are dimensionless
+R, M, E and offset are dimensionless but the units are solRaad, solMass, erg
 Only time has units 
 """
 ###########################################################################
-def L_7(theta, time):
+def L_7(theta, t):
     """
     the function to creat smooth power law
     """
     offset = theta[3]
-    time_offset = time - offset
-    L = np.zeros(time_offset.shape)
-    for i, t in enumerate(time_offset):
-        if t.to_value(u.h) < 0.20734:
-            L[i] = (L_smaller_t_0(theta)**-2 + L_smaller_t_s(theta, t)**-2)**-0.5
-        else:
-            L[i] = L_smaller_t_s(theta, t) + L_smaller_t_rec(theta, t)
-    return L
+    t_offset = t - offset
+    if t_offset.to_value(u.h) < 0.20734:
+        return (L_smaller_t_0(theta)**-2 + L_smaller_t_s(theta, t_offset)**-2)**-0.5
+    else:
+        return L_smaller_t_s(theta, t_offset) + L_smaller_t_rec(theta, t_offset)
 
 
 def L_f(theta, time, f):
