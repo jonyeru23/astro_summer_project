@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="ee90ec9a-244f-4b62-98f6-75b4b0228df2" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SWN16-Sushaman/SWN_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/SWN16-Sushaman/SWN_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SWN16-Sushaman/light_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/SWN16-Sushaman/light_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SWN16-Sushaman/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/SWN16-Sushaman/main.py" afterDir="false" />
     </list>
@@ -133,16 +132,5 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/SWN16-Sushaman/light_functions.py</url>
-          <line>49</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

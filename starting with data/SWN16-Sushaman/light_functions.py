@@ -49,6 +49,21 @@ def source_luminosity(theta, t, ob):
     Luminosity_to_hz = np.array([eq_2(theta, t, freq) for freq in freqs])
     return integral(freqs, Luminosity_to_hz)
 
+# def L_ltt(theta, t):
+#     """
+#     time in days, integrates over the light time travel, analytically!
+#     """
+#     offset = theta[3]
+#     t_offset = t - (offset * u.d)
+#     if t < 0:
+#         pass
+#     if t < t_0(theta):
+#         return integradet_L(t, L_smaller_t_0, theta) - integradet_L(t-t_rc(theta), L_smaller_t_0, theta)
+#     elif t_0(theta) < t < t_s(theta):
+#         return integradet_L(t, L_smaller_t_0, theta) - integradet_L(t-t_rc(theta), L_smaller_t_0, theta)
+#
+#
+# def integrated_L(t, L_f)
 
 def integral(x, y):
     return sum(y[i]*(x[i+1] - x[i]) for i in range(len(x) - 1))
@@ -85,9 +100,9 @@ def T_col(theta, t, nu):
 
 def eq_2(theta, t, nu):
     """
-    eq 2, temporeraly  and changed L to the broken power law
+    eq 2 so far
     """
-    return 0.9 * L_obs(theta, t) * 15 / np.pi**4 * \
+    return 0.9 * L_7(theta, t) * 15 / np.pi**4 * \
            (h / (k * T_col(theta, t, nu)))**4 * nu**3 * \
            (np.exp((h * nu)/(k * T_col(theta, t, nu))) - 1)**-1
 

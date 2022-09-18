@@ -7,14 +7,19 @@ R = 624 * u.solRad
 E_exp = 10**51 * u.erg
 theta = [R_x(R, 500).value, M_x(M_ej, 15).value, E_x(E_exp, 51).value, 0]
 
-def test_mag_figs(band):
-    time_log = np.linspace(2, 6)
-    ob = S.ObsBandpass(band)
-    plt.plot(time_log, [luminosity_to_mag(source_luminosity(theta, t, ob), 'ABMag') for t in (10**time_log * u.s).to(u.d)])
+
+def test_mag_figs(wave):
+    time_log = np.linspace(2, 6, 200)
+    # ob = S.ObsBandpass(wave)
+
+    nu = length_to_frequency(wave)
+    print(nu)
+    plt.plot(time_log, [luminosity_to_mag(eq_2(theta, t, nu)*nu, 'ABMag') for t in (10**time_log * u.s).to(u.d)])
     plt.grid()
     plt.ylabel('M_AB')
     plt.xlabel('log time [log(s)]')
     plt.gca().invert_yaxis()
+    plt.ylim(-12, -19)
     plt.show()
 
 def test_fig12():
@@ -87,4 +92,4 @@ def test_fiter():
 
 
 if __name__ == '__main__':
-    test_fig12()
+    test_mag_figs((200*10**-9*u.m).to_value(u.angstrom))
