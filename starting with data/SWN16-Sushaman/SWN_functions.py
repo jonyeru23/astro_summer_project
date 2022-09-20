@@ -64,12 +64,11 @@ def L_smaller_t_0(theta):
 
 
 def L_smaller_t_s(theta, t):
-    return 2.7 * 10**43 * multi(theta, -0.34, 1.74, 0.29) \
-                     * t.to_value(u.h)**(-4/3)
+    return L_smaller_t_0(theta) * (t/t_0(theta))**(-4/3)
 
 
 def L_smaller_t_rec(theta, t):
-    return 1.6 * 10**42 * multi(theta, -0.78, 0.28, 0.84) * t.value**-0.35
+    return L_smaller_t_0(theta) * (t_s(theta)/t_0(theta))**(-4/3) * (t/t_s(theta))**(-0.35)
 
 #########################################################################################
 
@@ -119,8 +118,9 @@ def t_rec(theta):
 
 
 def t_rc(theta):
+    """t_rc in days"""
     R = theta[0]
-    return (R * 500 * u.solRad).to(u.meter) / const.c
+    return ((R * 500 * u.solRad).to(u.meter) / const.c).to(u.d)
 
 
 def multi(theta, x, y, z):
