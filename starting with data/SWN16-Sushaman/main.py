@@ -1,11 +1,46 @@
 import matplotlib.pyplot as plt
 from light_functions import *
+from different_funcs import *
 
 
 M_ej = 9.3 * u.solMass
 R = 624 * u.solRad
 E_exp = 10**51 * u.erg
 theta = [R_x(R, 500).value, M_x(M_ej, 15).value, E_x(E_exp, 51).value, 0]
+
+def just_test():
+    data = pd.read_csv(r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\noraml_eta.csv")
+    for t in data.loc[:, 't[s]']:
+        t = (t*u.s).to(u.d)
+        print(type(L_obs_new(theta, t)))
+
+
+def test_web_L():
+    theta1 = [R_x(1, 500), M_x(1, 15), E_x(1, 51), 0]
+    data = pd.read_csv(r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\noraml_eta.csv")
+    # print(data.loc[:, 'L_bol[erg/s]'])
+    # print([L_obs(theta, (t*u.s).to(u.d)) for t in data.loc[:, 't[s]']])
+    # print(type(L_obs_new(theta, (data.loc[0, 't[s]']*u.s).to(u.d)).value))
+    plt.plot(np.log10(data.loc[:, 't[s]']), np.log10(np.array(data.loc[:, 'L_bol[erg/s]'])) , 'r-', label='Test func')
+    plt.plot(np.log10(data.loc[:, 't[s]']), np.log10(np.array([float(L_7(theta, (t*u.s).to(u.d))) for t in data.loc[:, 't[s]']])), label='My func')
+    plt.legend()
+    plt.grid()
+    # plt.xlim(-1, 100)
+    plt.title('R=624 solRad, M=9.3 solMass, E=1e51 erg')
+    plt.show()
+
+def test_web_T():
+    theta1 = [R_x(1, 500), M_x(1, 15), E_x(1, 51), 0]
+    data = pd.read_csv(r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\noraml_eta.csv")
+    plt.plot(np.log10(data.loc[:, 't[s]']), data.loc[:, 'T_obs[K]'], 'r-', label='Test func')
+    plt.plot(np.log10(data.loc[:, 't[s]']), [T_obs_new(theta, (t * u.s).to(u.d)) for t in data.loc[:, 't[s]']],
+             label='My func')
+    plt.legend()
+    plt.grid()
+    plt.title('R=624 solRad, M=9.3 solMass, E=1e51 erg')
+    plt.xlabel('log(t[s])')
+    plt.ylabel('T[K]')
+    plt.show()
 
 
 def test_mag_figs(wave):
@@ -92,4 +127,5 @@ def test_fiter():
 
 
 if __name__ == '__main__':
-    test_mag_figs((200*10**-9*u.m).to_value(u.angstrom))
+    # just_test()
+    test_web_L()

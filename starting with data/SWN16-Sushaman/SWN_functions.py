@@ -1,6 +1,7 @@
 from astropy import units as u
 from astropy import constants as const
 import numpy as np
+import pandas as pd
 """
 theta = [R500, M15, E51, offset]
 
@@ -16,7 +17,9 @@ def L_7(theta, t):
     """
     offset = theta[3]
     t_offset = t - offset
-    if t_offset.to_value(u.h) < 0.20734:
+    if t_offset < 0:
+        return L_smaller_0(theta, t_offset)
+    elif t_offset.to_value(u.h) < 0.20734:
         return (L_smaller_t_0(theta)**-2 + L_smaller_t_s(theta, t_offset)**-2)**-0.5
     else:
         return L_smaller_t_s(theta, t_offset) + L_smaller_t_rec(theta, t_offset)
@@ -53,8 +56,7 @@ def L_obs(theta, t):
 
 def L_smaller_0(theta, t):
     ratio = t/t_0(theta)
-    return 1.8 * 10**45 * multi(theta, -0.65, -0.11, 1.37) \
-                   * np.exp(-0.35 * ratio**2 + 0.15*ratio)
+    return L_smaller_t_0(theta) * np.exp((-0.35 * ratio**2) + (0.15*ratio))
 
 
 def L_smaller_t_0(theta):

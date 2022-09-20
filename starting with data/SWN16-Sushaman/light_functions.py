@@ -102,7 +102,7 @@ def eq_2(theta, t, nu):
     """
     eq 2 so far
     """
-    return 0.9 * L_7(theta, t) * 15 / np.pi**4 * \
+    return 0.9 * L_obs(theta, t) * 15 / np.pi**4 * \
            (h / (k * T_col(theta, t, nu)))**4 * nu**3 * \
            (np.exp((h * nu)/(k * T_col(theta, t, nu))) - 1)**-1
 
@@ -112,6 +112,7 @@ def Rayleign_Jeans(theta, t, nu, system):
     the flux of a black body radiation
     """
     return mag_to_flux(blackbody_mag(theta, t, nu, system))
+
 
 def blackbody_mag(theta, t, ob, system):
     """
