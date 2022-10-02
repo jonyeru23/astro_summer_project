@@ -13,7 +13,7 @@ Only time has units
 ###########################################################################
 def L_7(theta, t):
     """
-    the function to creat smooth power law
+    the function to creat smooth power lawcmd
     """
     offset = theta[3]
     t_offset = t - offset
