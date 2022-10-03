@@ -10,6 +10,10 @@ distance = 26.4 * 10**6 * u.pc
 """
 This file contains the following classes: Time, Luminosity, Temp, Radius
 consentrated into one place.
+
+i need to deal with the t - offset.
+i do it in one place and one place only, in FilteredL.get_filtered_L. after that all functions assume that t is after 
+offset.
 """
 
 
@@ -45,27 +49,28 @@ class Time:
 class T(Time):
     def col(self, theta, t, nu):
         """nu is frequency"""
+        m = 11
+        # return self.obs(theta, t) * (1 + (h * nu / (3 * k * self.obs(theta, t))) ** (-0.2 * m)) ** -(1 / m)
         return self.obs(theta, t) * (h * nu / (3 * k * self.obs(theta, t))) ** 0.2
 
     def obs(self, theta, t):
         """eq 8 in Shusman"""
-        offset = theta[3]
-        t_offset = t - (offset * u.d)
         T0 = 4.3 * 10 ** 5 * self.multi(theta, -0.17, -0.52, 0.35)
+
         if t < self.t_0(theta):
             return T0
 
         elif self.t_0(theta) <= t < self.t_s(theta):
-            return T0 * (t_offset / self.t_0(theta)) ** (-0.45)
+            return T0 * (t / self.t_0(theta)) ** (-0.45)
 
         elif self.t_s(theta) <= t < self.t_c(theta):
-            return T0 * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (t_offset / self.t_s(theta)) ** (-0.35)
+            return T0 * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (t / self.t_s(theta)) ** (-0.35)
 
         elif self.t_c(theta) <= t < self.t_rec(theta):
-            return T0 * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (self.t_c(theta) / self.t_s(theta)) ** (-0.35) * (
-                        t / self.t_c(theta)) ** (-0.6)
+            return T0 * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (self.t_c(theta) / self.t_s(theta)) ** (-0.35) * \
+                   (t / self.t_c(theta)) ** (-0.6)
 
-        return 0
+        return 1
 
 
 class Wave:
@@ -89,12 +94,11 @@ class Wave:
         """
         start = self.length_to_frequency(self.ob.avgwave() + self.ob.equivwidth() / 2)
         stop = self.length_to_frequency(self.ob.avgwave() - self.ob.equivwidth() / 2)
-        step_size = (stop - start) / steps
-        return np.arange(start, stop, step_size)
+        return np.linspace(start, stop, steps)
 
 
 class L(Time):
-    def __init__(self, steps):
+    def __init__(self, steps=100):
         self.T = T()
         self.steps = steps
 
@@ -111,31 +115,27 @@ class L(Time):
 
     def broken_power_law(self, theta, t) -> float:
         """eq 7"""
-        offset = theta[3]
-        t_offset = t - offset
-        if t_offset < 0:
-            return self.smaller_0(theta, t_offset)
-        elif t_offset.to_value(u.h) < 0.20734:
-            return (self.smaller_t_0(theta) ** -2 + self.smaller_t_s(theta, t_offset) ** -2) ** -0.5
+        if t < 0:
+            return self.smaller_0(theta, t)
+        elif t.to_value(u.h) < 0.20734:
+            return (self.smaller_t_0(theta) ** -2 + self.smaller_t_s(theta, t) ** -2) ** -0.5
         else:
-            return self.smaller_t_s(theta, t_offset) + self.smaller_t_rec(theta, t_offset)
+            return self.smaller_t_s(theta, t) + self.smaller_t_rec(theta, t)
 
     def obs(self, theta, t) -> float:
         """eq 5"""
-        offset = theta[3]
-        t_offset = t - (offset * u.d)
         if t <= 0:
-            return self.smaller_0(theta, t_offset)
+            return self.smaller_0(theta, t)
 
         elif t <= self.t_0(theta):
             return self.smaller_t_0(theta)
 
         elif self.t_0(theta) <= t <= self.t_s(theta):
-            return self.smaller_t_s(theta, t_offset)
+            return self.smaller_t_s(theta, t)
 
         elif self.t_s(theta) <= t <= self.t_rec(theta):
-            return self.smaller_t_rec(theta, t_offset)
-        return 0
+            return self.smaller_t_rec(theta, t)
+        return 1
 
     def smaller_t_0(self, theta) -> float:
         return 1.8 * 10 ** 45 * self.multi(theta, -0.65, -0.11, 1.37)
@@ -154,7 +154,7 @@ class L(Time):
 
 class FilteredL(L):
     """not exactly ccording to SOLID, but i need a few things in this calss to make it work properly"""
-    def __init__(self, steps, band_filter='V', system='VegaMag'):
+    def __init__(self, steps=100, band_filter='V', system='VegaMag'):
         super().__init__(steps)
         self.wave = Wave(band_filter, system)
         self.system = system
@@ -162,13 +162,15 @@ class FilteredL(L):
 
     def get_filtered_L(self, theta, t):
         """the eq after eq 5 in Kozyreva"""
-        temp_limit = (h * self.wave.central_freq) / (3 * k * self.T.col(theta, t, self.wave.central_freq))
+        offset = theta[3]
+        t_offset = t - offset
+        temp_limit = (h * self.wave.central_freq) / (3 * k * self.T.col(theta, t_offset, self.wave.central_freq))
         if temp_limit < 0.3:
-            return self.Rayleign_Jeans(theta, t)
+            return self.Rayleign_Jeans(theta, t_offset)
 
         elif 0.3 < temp_limit < 3:
             freq_range = self.wave.get_range_freq(self.steps)
-            return np.trapz(y=[self.eq_2(theta, t, nu) for nu in freq_range],
+            return np.trapz(y=[self.eq_2(theta, t_offset, nu) for nu in freq_range],
                             x=freq_range)
         return 1
 
@@ -185,6 +187,7 @@ class FilteredL(L):
 
         mag = obs.effstim(self.system)
 
+        new_mag = mag - 2.5 * np.log10(((self.R(theta, t) / (1 * u.solRad)) ** 2) * ((1000.0 * u.pc / distance) ** 2))
         return mag - 2.5 * np.log10(((self.R(theta, t) / (1 * u.solRad)) ** 2) * ((1000.0 * u.pc / distance) ** 2))
 
     def R(self, theta, t):
@@ -195,12 +198,15 @@ class FilteredL(L):
         sigma_sb = const.sigma_sb.to(u.erg * u.cm ** -2 * u.s ** -1 * u.K ** -4)
         return np.sqrt((self.obs(theta, t) * (u.erg / u.s) / (4 * np.pi * sigma_sb *
                                                               (self.T.obs(theta, t) * u.K) ** 4))).to(u.solRad)
-    @staticmethod
-    def mag_to_flux(mag):
+
+    def mag_to_flux(self, mag):
         """
         defenition of mag
         """
-        return 10 ** (-0.4 * mag)
+        if self.system == 'VegaMag':
+            mag += 0.02
+
+        return const.L_bol0.to_value(u.erg / u.s) * 10 ** (-0.4 * mag)
 
     def luminosity_to_mag(self, L):
         """
@@ -211,7 +217,6 @@ class FilteredL(L):
         if self.system == 'VegaMag':
             return mag - 0.02
         return mag
-
 
     def eq_2(self, theta, t, nu):
         """eq 2 in Kozyreva paper, after light travel time, nu is freq"""
