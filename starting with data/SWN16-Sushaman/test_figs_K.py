@@ -61,12 +61,15 @@ def test_fig_5():
     plt.plot(log_nu, [np.log10(L_nu(m12l15rot2, (300*u.s).to(u.d), nu)) for nu in 10**log_nu])
     plt.grid()
     plt.ylim(25, 29)
+    plt.xlabel('log nu [log(Hz)]')
+    plt.ylabel('log L_nu [log(erg / (sHz))')
+    plt.title('Figure 5 Kozyreva')
     plt.show()
 
 def test_fig_9():
     """there is a problem somewhere"""
     log_t = np.linspace(1.5, 6.5)
-    to_mag = FilteredL(100).luminosity_to_mag
+    to_mag = FilteredL(100).luminosity_to_absolute_mag
     L_filtered = FilteredL(100).get_filtered_L
     plt.plot(log_t, [to_mag(L_filtered(m12l15rot2, (t*u.s).to(u.d))) for t in 10**log_t])
     plt.show()
@@ -116,28 +119,83 @@ def test_fig_4():
             index += 1
     plt.show()
 
-def test_fig_17_shusman():
-    """no good"""
+def test_fig_17_19_shusman(length):
+    """
+    length by the paper
+    test passed,
+    not exactly the same graph but i think it's because of the difference between eq 39 and 5.
+    """
     log_time = np.linspace(1.8, 6.2)
     lumi = FilteredL(band_filter='R', system='ABMag')
-    to_mag = lumi.luminosity_to_mag
-    plt.plot(log_time, [np.log10(lumi.get_filtered_L(theta, (t*u.s).to(u.d))) for t in 10**log_time])
+    to_mag = lumi.luminosity_to_absolute_mag
+    eq_2 = lumi.eq_2
+    nu = lumi.wave.length_to_frequency((length * 10**-9 * u.m).to_value(u.angstrom))
+    print(nu)
+    # plt.plot(log_time, [to_mag(lumi.get_filtered_L(theta, t*u.s)) for t in 10**log_time])
+    # plt.plot(log_time, [to_mag(eq_2(theta, (t*u.s).to(u.d), nu)*nu) for t in 10**log_time])
+    plt.plot(log_time, [to_mag(lumi.integrated_freq_L(theta, (t*u.s).to(u.d))) for t in 10**log_time])
+    plt.ylim(-12, -20)
+    plt.xlabel('log t [s]')
+    plt.ylabel('M_AB')
+    plt.title(f'Lambda = {length}nm')
+    plt.grid()
+    plt.show()
+
+def test_magnitude_graph():
+    """my own test to see if the integral over the wave lengths is ok"""
+    log_time = np.linspace(1.8, 6)
+    lumi = FilteredL()
+    to_mag = lumi.luminosity_to_absolute_mag
+    to_apparent = lumi.convert_absolute_to_apparent
+    plt.plot(log_time, [to_apparent(to_mag(lumi.get_filtered_L(theta, (t * u.s).to(u.d))), distance) for t in 10**log_time], 'k', label='filtered L')
+    # plt.plot(log_time, [to_mag(lumi.integrated_freq_L(theta, (t * u.s).to(u.d))) for t in 10 ** log_time], 'r', label='integrated eq 2')
+    # plt.plot(log_time, [to_mag(lumi.Rayleign_Jeans(theta, (t * u.s).to(u.d))) for t in 10 ** log_time], 'b', label='blackbody')
+    plt.legend()
+    plt.grid()
+    # plt.ylim(-12, -19)
+    plt.gca().invert_yaxis()
+    plt.show()
+
+
+def test_figure_9_k():
+    bands = ['U', 'B', 'V', 'R','I']
+    colors = ['m', 'b', 'k', 'r', 'g']
+    log_time = np.linspace(1.8, 6)
+    for band, color in zip(bands, colors):
+        print(band)
+        lumi = FilteredL(band_filter=band)
+        to_mag = lumi.luminosity_to_absolute_mag
+        plt.plot(log_time, [to_mag(lumi.get_filtered_L(m12l15rot2, (t*u.s).to(u.d))) for t in 10**log_time], color, label=band)
+        plt.ylim(-12.5, -18)
+        plt.legend()
+        plt.grid()
+    plt.title('figure 9 Kozyreva')
+    plt.xlabel('log time [log(s)]')
+    plt.ylabel('magnitude [mags]')
+    plt.show()
+
+def test_fig_7():
+    log_time = np.linspace(1.8, 6.2)
+    lumi = FilteredL(band_filter='R', system='ABMag')
+    to_mag = lumi.luminosity_to_absolute_mag
+    eq_2 = lumi.eq_2
+    nu = lumi.wave.length_to_frequency((length * 10 ** -9 * u.m).to_value(u.angstrom))
+    print(nu)
+    # plt.plot(log_time, [to_mag(lumi.get_filtered_L(theta, t*u.s)) for t in 10**log_time])
+    # plt.plot(log_time, [to_mag(eq_2(theta, (t*u.s).to(u.d), nu)*nu) for t in 10**log_time])
+    plt.plot(log_time, [to_mag(lumi.integrated_freq_L(theta, (t * u.s).to(u.d))) for t in 10 ** log_time])
+    plt.ylim(-12, -20)
+    plt.xlabel('log t [s]')
+    plt.ylabel('M_AB')
+    plt.title(f'Lambda = {length}nm')
     plt.grid()
     plt.show()
 
 
-def test_figure_7():
-    bands = ['U', 'B', 'V', 'R','I']
-    y = []
-    x = np.linspace(1)
-    for band in bands:
-        lumi = FilteredL(band_filter=band).get_filtered_L
-
-
+def test_random_stuff():
+    a = 60 * u.s
+    b = 1 * u.d
+    print(b-a)
 
 if __name__ == '__main__':
-    # just_test()
-    # test_web_L_llt()
-    # test_classes()
-    # test_web_L()
-    test_fig_17_shusman()
+    test_fig_17_19_shusman(200)

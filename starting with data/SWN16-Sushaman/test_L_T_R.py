@@ -29,7 +29,8 @@ def luminosity_factory():
     return {
         'V': FilteredL(100),
         'U': FilteredL(100, 'U', 'ABMag'),
-        'R': FilteredL(100, 'R')
+        'R': FilteredL(100, 'R'),
+        'not_filtered': L()
     }
 
 @pytest.fixture
@@ -48,9 +49,12 @@ def progenitors_factory():
 def test_mag_to_lum(luminosity_factory):
     for band in ['V', 'U']:
         mag_to_flux = luminosity_factory[band].mag_to_flux
-        luminosity_to_mag = luminosity_factory[band].luminosity_to_mag
+        luminosity_to_mag = luminosity_factory[band].luminosity_to_absolute_mag
         assert abs(mag_to_flux(luminosity_to_mag(1)) - 1) < 0.0001
 
+
+def test_right_mag(luminosity_factory, progenitor_factory):
+    pass
 
 
 

@@ -92,8 +92,8 @@ class Wave:
         """
         ******************************ask Iair about the width of the frequency************************
         """
-        start = self.length_to_frequency(self.ob.avgwave() + self.ob.equivwidth() / 2)
-        stop = self.length_to_frequency(self.ob.avgwave() - self.ob.equivwidth() / 2)
+        start = self.length_to_frequency(self.ob.avgwave() + self.ob.rectwidth() / 2)
+        stop = self.length_to_frequency(self.ob.avgwave() - self.ob.rectwidth() / 2)
         return np.linspace(start, stop, steps)
 
 
@@ -169,26 +169,35 @@ class FilteredL(L):
             return self.Rayleign_Jeans(theta, t_offset)
 
         elif 0.3 < temp_limit < 3:
-            freq_range = self.wave.get_range_freq(self.steps)
-            return np.trapz(y=[self.eq_2(theta, t_offset, nu) for nu in freq_range],
-                            x=freq_range)
+            return self.integrated_freq_L(theta, t_offset)
         return 1
+
+    def integrated_freq_L(self, theta, t):
+        freq_range = self.wave.get_range_freq(self.steps)
+        return np.trapz(y=[self.eq_2(theta, t, nu) for nu in freq_range],
+                        x=freq_range)
 
     def Rayleign_Jeans(self, theta, t):
         """
         the flux of a black body radiation
         """
-        return self.mag_to_flux(self.blackbody_mag(theta, t))
+        return self.mag_to_flux(self.blackbody_absolute_mag(theta, t))
 
-    def blackbody_mag(self, theta, t):
+    def blackbody_absolute_mag(self, theta, t):
+        """
+        absolute magnitude of a blackbody, after convertion.
+        without considering the distance of the supernova for generality.
+        """
         bb = S.BlackBody(self.T.col(theta, t, nu=self.wave.central_freq))
-
         obs = S.Observation(bb, self.wave.ob)
 
         mag = obs.effstim(self.system)
+        # new_mag = mag - 2.5 * np.log10(((self.R(theta, t) / (1 * u.solRad)) ** 2) * ((1000.0 * u.pc / (10.0 * u.pc)) ** 2))
+        return mag - 2.5 * np.log10(((self.R(theta, t) / (1 * u.solRad)) ** 2) * ((1000.0 * u.pc / (10.0 * u.pc)) ** 2))
 
-        new_mag = mag - 2.5 * np.log10(((self.R(theta, t) / (1 * u.solRad)) ** 2) * ((1000.0 * u.pc / distance) ** 2))
-        return mag - 2.5 * np.log10(((self.R(theta, t) / (1 * u.solRad)) ** 2) * ((1000.0 * u.pc / distance) ** 2))
+    @staticmethod
+    def convert_absolute_to_apparent(M, distance):
+        return M + 5 * np.log10(distance.to_value()) - 5
 
     def R(self, theta, t):
         """
@@ -208,7 +217,7 @@ class FilteredL(L):
 
         return const.L_bol0.to_value(u.erg / u.s) * 10 ** (-0.4 * mag)
 
-    def luminosity_to_mag(self, L):
+    def luminosity_to_absolute_mag(self, L):
         """
         gets the absolute magnitude of a star, given L [erg/s], m_AB - m_Vega = 0.02
         returns the system in question
