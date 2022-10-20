@@ -8,8 +8,8 @@ k = const.k_B.to_value(u.erg / u.K)
 distance = 26.4 * 10**6 * u.pc
 
 """
-This file contains the following classes: Time, Luminosity, Temp, Radius
-consentrated into one place.
+This file contains the following classes: Time, Luminosity, Temp, Filtered Luminosity.
+concentrated into one place.
 
 i need to deal with the t - offset.
 i do it in one place and one place only, in FilteredL.get_filtered_L. after that all functions assume that t is after 
@@ -205,7 +205,7 @@ class FilteredL(L):
         R^2 = sqrt(L(t)/4pi sigma T^4)
         """
         sigma_sb = const.sigma_sb.to(u.erg * u.cm ** -2 * u.s ** -1 * u.K ** -4)
-        return np.sqrt((self.obs(theta, t) * (u.erg / u.s) / (4 * np.pi * sigma_sb *
+        return np.sqrt((self.light_travel_time(theta, t) * (u.erg / u.s) / (4 * np.pi * sigma_sb *
                                                               (self.T.obs(theta, t) * u.K) ** 4))).to(u.solRad)
 
     def mag_to_flux(self, mag):
@@ -216,6 +216,12 @@ class FilteredL(L):
             mag += 0.02
 
         return const.L_bol0.to_value(u.erg / u.s) * 10 ** (-0.4 * mag)
+
+    def mag_to_fluxerr(self, mag, mag_err):
+        """
+        a bit of derivation of errors, check with iair if this is the right way!!
+        """
+        return const.L_bol0.to_value(u.erg / u.s) * abs(self.mag_to_flux(mag) * (-0.4) * np.log(10) * mag_err)
 
     def luminosity_to_absolute_mag(self, L):
         """
