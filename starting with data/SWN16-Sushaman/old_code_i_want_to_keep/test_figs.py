@@ -1,16 +1,17 @@
 import matplotlib.pyplot as plt
 from light_functions import *
 from different_funcs import *
-
+from L_T_R import *
 
 M_ej = 9.3 * u.solMass
 R = 624 * u.solRad
-E_exp = 10**51 * u.erg
+E_exp = 10 ** 51 * u.erg
 theta = [R_x(R, 500).value, M_x(M_ej, 15).value, E_x(E_exp, 51).value, 0]
 
 
 def test_web_L_llt():
-    data = pd.read_csv(r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\normal_theta_ltt.csv")
+    data = pd.read_csv(
+        r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\normal_theta_ltt.csv")
     plt.plot(np.log10(data.loc[:, 't[s]']), np.array(data.loc[:, 'L_bol[erg/s]']), 'r-', label='Test func')
     plt.plot(np.log10(data.loc[:, 't[s]']),
              np.array([float(L_ltt_7(theta, (t * u.s).to(u.d))) for t in data.loc[:, 't[s]']]), label='L_ltt')
@@ -24,15 +25,17 @@ def test_web_L_llt():
 
 
 def just_test():
-    data = pd.read_csv(r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\noraml_eta.csv")
+    data = pd.read_csv(
+        r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\noraml_eta.csv")
     for t in data.loc[:, 't[s]']:
-        t = (t*u.s).to(u.d)
+        t = (t * u.s).to(u.d)
         print(type(L_obs_new(theta, t)))
 
 
 def test_web_L():
     theta1 = [R_x(1, 500), M_x(1, 15), E_x(1, 51), 0]
-    data = pd.read_csv(r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\noraml_eta.csv")
+    data = pd.read_csv(
+        r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\noraml_eta.csv")
     # print(data.loc[:, 'L_bol[erg/s]'])
     # print([L_obs(theta, (t*u.s).to(u.d)) for t in data.loc[:, 't[s]']])
     # print(type(L_obs_new(theta, (data.loc[0, 't[s]']*u.s).to(u.d)).value))
@@ -48,9 +51,11 @@ def test_web_L():
     plt.title('R=624 solRad, M=9.3 solMass, E=1e51 erg')
     plt.show()
 
+
 def test_web_T():
     theta1 = [R_x(1, 500), M_x(1, 15), E_x(1, 51), 0]
-    data = pd.read_csv(r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\R=1_M=1_E=1.csv")
+    data = pd.read_csv(
+        r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\R=1_M=1_E=1.csv")
     plt.plot(np.log10(data.loc[:, 't[s]']), data.loc[:, 'T_obs[K]'], 'r-', label='Test func')
     plt.plot(np.log10(data.loc[:, 't[s]']), [T_obs_new(theta1, (t * u.s).to(u.d)) for t in data.loc[:, 't[s]']],
              label='My func')
@@ -68,7 +73,7 @@ def test_mag_figs(wave):
 
     nu = length_to_frequency(wave)
     print(nu)
-    plt.plot(time_log, [luminosity_to_mag(eq_2(theta, t, nu)*nu, 'ABMag') for t in (10**time_log * u.s).to(u.d)])
+    plt.plot(time_log, [luminosity_to_mag(eq_2(theta, t, nu) * nu, 'ABMag') for t in (10 ** time_log * u.s).to(u.d)])
     plt.grid()
     plt.ylabel('M_AB')
     plt.xlabel('log time [log(s)]')
@@ -76,9 +81,10 @@ def test_mag_figs(wave):
     plt.ylim(-12, -19)
     plt.show()
 
+
 def test_fig12():
     nus = np.linspace(14, 17)
-    plt.plot(nus, [eq_2(theta, t_rc(theta), 10**nu) for nu in nus])
+    plt.plot(nus, [eq_2(theta, t_rc(theta), 10 ** nu) for nu in nus])
     plt.yscale('log')
     plt.grid()
     plt.xlabel('log(nu) [log(Hz)]')
@@ -89,13 +95,13 @@ def test_fig12():
 
 
 def test_fig10():
-    time_log = np.linspace(1.8, 6.2, 10**3)
+    time_log = np.linspace(1.8, 6.2, 10 ** 3)
     M_ej = 9.3 * u.solMass
     R = 624 * u.solRad
-    E_exp = 10**51 * u.erg
+    E_exp = 10 ** 51 * u.erg
     theta = [R_x(R, 500).value, M_x(M_ej, 15).value, E_x(E_exp, 51).value, 0]
-    time_log_real = time_log[10**time_log - t_rc(theta).value>0]
-    plt.plot(time_log_real, T_max(theta, (10**time_log_real*u.s).to(u.d)))
+    time_log_real = time_log[10 ** time_log - t_rc(theta).value > 0]
+    plt.plot(time_log_real, T_max(theta, (10 ** time_log_real * u.s).to(u.d)))
     plt.grid()
     plt.yscale('log')
     plt.ylabel('L[erg/s]')
@@ -103,9 +109,8 @@ def test_fig10():
     plt.show()
 
 
-
 def test_fig10_2():
-    top = lambda theta, t: (L_smaller_t_0(theta)**-2 + L_smaller_t_s(theta, t)**-2)**-0.5
+    top = lambda theta, t: (L_smaller_t_0(theta) ** -2 + L_smaller_t_s(theta, t) ** -2) ** -0.5
     bot = lambda theta, t: L_smaller_t_s(theta, t) + L_smaller_t_rec(theta, t)
     time_log = np.linspace(2, 6, 10 ** 3)
     M_ej = 9.3 * u.solMass
@@ -120,13 +125,14 @@ def test_fig10_2():
     plt.xlabel('t_log[log(s)]')
     plt.show()
 
+
 def test_fig11():
     time = np.linspace(-850, 0, 10 ** 3)
     M_ej = 9.3 * u.solMass
     R = 624 * u.solRad
     E_exp = 10 ** 51 * u.erg
     theta = [R_x(R, 500).value, M_x(M_ej, 15).value, E_x(E_exp, 51).value, 0]
-    plt.plot(time, L_obs(theta, (time*u.s).to(u.d)))
+    plt.plot(time, L_obs(theta, (time * u.s).to(u.d)))
     plt.grid()
     plt.yscale('log')
     plt.ylabel('L[erg/s]')
@@ -144,7 +150,28 @@ def test_fiter():
     plt.show()
 
 
+def test_classes():
+    Lumi = L(100)
+    data = pd.read_csv(
+        r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman\test_data\noraml_eta.csv")
+    # print(data.loc[:, 'L_bol[erg/s]'])
+    # print([L_obs(theta, (t*u.s).to(u.d)) for t in data.loc[:, 't[s]']])
+    # print(type(L_obs_new(theta, (data.loc[0, 't[s]']*u.s).to(u.d)).value))
+    plt.plot(np.log10(data.loc[:, 't[s]']), np.array(data.loc[:, 'L_bol[erg/s]']), 'r-', label='Test func')
+    # plt.plot(np.log10(data.loc[:, 't[s]']), np.array([float(L_obs_new(theta, (t*u.s).to(u.d))) for t in data.loc[:, 't[s]']]), label='eq 5')
+    plt.plot(np.log10(data.loc[:, 't[s]']),
+             np.array([float(Lumi.broken_power_law(theta, (t * u.s).to(u.d))) for t in data.loc[:, 't[s]']]),
+             label='broken law eq 7')
+    plt.legend()
+    plt.grid()
+    # plt.xlim(-1, 100)
+    plt.ylabel('L[erg/s]')
+    plt.xlabel('log(t[s])')
+    plt.title('R=624 solRad, M=9.3 solMass, E=1e51 erg')
+    plt.show()
 
 if __name__ == '__main__':
     # just_test()
-    test_web_L_llt()
+    # test_web_L_llt()
+    test_classes()
+    # test_web_L()
