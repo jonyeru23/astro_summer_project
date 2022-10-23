@@ -59,3 +59,4 @@ def test_right_mag(luminosity_factory, progenitor_factory):
 
 
 
+

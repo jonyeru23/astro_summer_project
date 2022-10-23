@@ -5,7 +5,7 @@ import pysynphot as S
 
 h = const.h.to_value(u.erg / u.Hz)
 k = const.k_B.to_value(u.erg / u.K)
-distance = 26.4 * 10**6 * u.pc
+distance = 26.4 * 10 ** 6 * u.pc
 
 """
 This file contains the following classes: Time, Luminosity, Temp, Filtered Luminosity.
@@ -67,7 +67,8 @@ class T(Time):
             return T0 * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (t / self.t_s(theta)) ** (-0.35)
 
         elif self.t_c(theta) <= t < self.t_rec(theta):
-            return T0 * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (self.t_c(theta) / self.t_s(theta)) ** (-0.35) * \
+            return T0 * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (self.t_c(theta) / self.t_s(theta)) ** (
+                -0.35) * \
                    (t / self.t_c(theta)) ** (-0.6)
 
         return 1
@@ -88,6 +89,18 @@ class Wave:
         wave_length = (wave_length * u.angstrom).to_value(u.m)
         return const.c.value / wave_length
 
+    @staticmethod
+    def frequency_to_length(frequency):
+        """
+        accepts frequency in Hz and returns wave length in angstrom
+        """
+        return (const.c.value / frequency * u.m).to_value(u.angstrom)
+
+    def get_range_wave_length(self, steps):
+        start = self.ob.avgwave() - self.ob.rectwidth() / 2
+        stop = self.ob.avgwave() + self.ob.rectwidth() / 2
+        return np.linspace(start, stop, steps)
+
     def get_range_freq(self, steps):
         """
         ******************************ask Iair about the width of the frequency************************
@@ -98,20 +111,30 @@ class Wave:
 
 
 class L(Time):
-    def __init__(self, steps=100):
+    def __init__(self, steps=100, band_filter='V', system='VegaMag'):
         self.T = T()
         self.steps = steps
+        self.wave = Wave(band_filter, system)
+        self.system = system
+        self.band_filter = band_filter
 
-    def light_travel_time(self, theta, t) -> float:
+    def light_travel_time(self, theta, t, L_function, nu=0) -> float:
         """eq 1 in Kozyreva paper"""
         dx = self.t_rc(theta) / self.steps
         return 2 / self.t_rc(theta) * \
-               np.trapz([self.ltt_integrant(theta, t, t_tag) for t_tag in np.linspace(t-self.t_rc(theta), t, self.steps)],
+               np.trapz([self.ltt_integrant(theta, t, t_tag, L_function, nu) for t_tag in
+                         np.linspace(t - self.t_rc(theta), t, self.steps)],
                         dx=dx)
 
-    def ltt_integrant(self, theta, t, t_tag) -> float:
+    def ltt_integrant(self, theta, t, t_tag, L_function, nu) -> float:
         """the function inside the integral"""
-        return self.broken_power_law(theta, t_tag) * (1 - (t - t_tag) / self.t_rc(theta))
+        return L_function(theta, t_tag, nu) * (1 - (t - t_tag) / self.t_rc(theta))
+
+    def eq_2(self, theta, t, nu):
+        """eq 2 in Kozyreva paper, after light travel time, nu is freq"""
+        return 0.9 * self.broken_power_law(theta, t) * 15 / np.pi ** 4 * \
+               (h / (k * self.T.col(theta, t, nu))) ** 4 * nu ** 3 * \
+               (np.exp((h * nu) / (k * self.T.col(theta, t, nu))) - 1) ** -1
 
     def broken_power_law(self, theta, t) -> float:
         """eq 7"""
@@ -154,6 +177,7 @@ class L(Time):
 
 class FilteredL(L):
     """not exactly ccording to SOLID, but i need a few things in this calss to make it work properly"""
+
     def __init__(self, steps=100, band_filter='V', system='VegaMag'):
         super().__init__(steps)
         self.wave = Wave(band_filter, system)
@@ -202,11 +226,12 @@ class FilteredL(L):
     def R(self, theta, t):
         """
         gets t in days, then converts the result to rsun
-        R^2 = sqrt(L(t)/4pi sigma T^4)
+        R = sqrt(L(t)/4pi sigma T^4)
         """
         sigma_sb = const.sigma_sb.to(u.erg * u.cm ** -2 * u.s ** -1 * u.K ** -4)
         return np.sqrt((self.light_travel_time(theta, t) * (u.erg / u.s) / (4 * np.pi * sigma_sb *
-                                                              (self.T.obs(theta, t) * u.K) ** 4))).to(u.solRad)
+                                                                            (self.T.obs(theta, t) * u.K) ** 4))).to(
+            u.solRad)
 
     def mag_to_flux(self, mag):
         """
@@ -240,6 +265,71 @@ class FilteredL(L):
                (np.exp((h * nu) / (k * self.T.col(theta, t, nu))) - 1) ** -1
 
 
+class Magnitude(L):
+    """the default is to give back an absolute magnitude"""
 
+    def get_filtered_abs_mag(self, theta, t):
+        """the eq after eq 5 in Kozyreva"""
+        offset = theta[3]
+        t_offset = t - offset
+        temp_limit = (h * self.wave.central_freq) / (3 * k * self.T.col(theta, t_offset, self.wave.central_freq))
+        use_func = None
+        if temp_limit < 0.3:
+            use_func = self.Rayleign_Jean_pseudo_flux
 
+        # theoretically, i need it to be smaller than 3 but i don't think we will get there
+        # and i don't want to make discontinuity
+        elif 0.3 < temp_limit:
+            use_func = self.absolute_filtered_pseudo_flux
+        return self.to_mag_from_pseudo_flux(self.light_travel_time(theta, t, use_func))
 
+    def absolute_filtered_pseudo_flux(self, theta, t):
+        return self.to_pseudo_flux_from_mag(self.absolute_mag_filtered(theta, t))
+
+    def absolute_mag_filtered(self, theta, t):
+        freq_range = self.wave.get_range_freq(self.steps)
+        flux = np.array([self.eq_2(theta, t, nu) for nu in freq_range]) / (
+                    4 * np.pi * self.R(theta, t).to_value(u.cm) ** 2)
+        wave_range = self.wave.frequency_to_length(freq_range)
+
+        # flipped them so it would be from small to large
+        sp = S.ArraySpectrum(wave_range.flip, flux.flip, fluxunits='fnu')
+        return self.get_abs_mag_from_source(sp, theta, t)
+
+    def Rayleign_Jean_pseudo_flux(self, theta, t):
+        return self.to_pseudo_flux_from_mag(self.Rayleign_Jeans_Mag(theta, t))
+
+    def Rayleign_Jeans_Mag(self, theta, t):
+        """
+        absolute magnitude of a blackbody, after convertion.
+        without considering the distance of the supernova for generality.
+        """
+        bb = S.BlackBody(self.T.col(theta, t, nu=self.wave.central_freq))
+        return self.get_abs_mag_from_source(bb, theta, t)
+
+    def get_abs_mag_from_source(self, source, theta, t):
+        obs = S.Observation(source, self.wave.ob)
+
+        mag = obs.effstim(self.system)
+        return mag - 2.5 * np.log10(((self.R(theta, t) / (1 * u.solRad)) ** 2) * ((1000.0 * u.pc / (10.0 * u.pc)) ** 2))
+
+    def R(self, theta, t):
+        """
+        gets t in days, then converts the result to rsun
+        R = sqrt(L(t)/4pi sigma T^4)
+        for this one i need the bolometric luminosity! so i will use broken power law with ltt
+        """
+        sigma_sb = const.sigma_sb.to(u.erg * u.cm ** -2 * u.s ** -1 * u.K ** -4)
+        return np.sqrt(
+            (self.light_travel_time(theta, t, self.broken_power_law) * (u.erg / u.s) / (4 * np.pi * sigma_sb *
+                                                                                        (self.T.obs(theta,
+                                                                                                    t) * u.K) ** 4))).to(
+            u.solRad)
+
+    @staticmethod
+    def to_pseudo_flux_from_mag(mag):
+        return 10 ** (-0.4 * mag)
+
+    @staticmethod
+    def to_mag_from_pseudo_flux(pseudo_flux):
+        return -2.5 * np.log10(pseudo_flux)
