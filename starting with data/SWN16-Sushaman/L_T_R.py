@@ -42,36 +42,46 @@ class Time:
     @staticmethod
     def t_rc(theta) -> float:
         """t_rc in days"""
-        R = theta[0]
-        return ((R * 500 * u.solRad).to(u.meter) / const.c).to(u.d)
+        R500 = theta[0]
+        return ((R500 * 500 * u.solRad).to(u.meter) / const.c).to(u.d)
 
 
 class T(Time):
-    def col(self, theta, t, nu):
+    def col(self, theta, t, nu) -> float:
         """nu is frequency"""
-        m = 11
+        m = 12
         return self.obs(theta, t) * (1 + (h * nu / (3 * k * self.obs(theta, t))) ** (-0.2 * m)) ** -(1 / m)
         # return self.obs(theta, t) * (h * nu / (3 * k * self.obs(theta, t))) ** 0.2
 
     def obs(self, theta, t):
         """eq 8 in Shusman"""
-        T0 = 4.3 * 10 ** 5 * self.multi(theta, -0.17, -0.52, 0.35)
-
         if t < self.t_0(theta):
-            return T0
+            return self.T_smaller_t_0(theta)
 
         elif self.t_0(theta) <= t < self.t_s(theta):
-            return T0 * (t / self.t_0(theta)) ** (-0.45)
+            return self.T_smaller_t_s(theta, t)
 
         elif self.t_s(theta) <= t < self.t_c(theta):
-            return T0 * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (t / self.t_s(theta)) ** (-0.35)
+            return self.T_smaller_t_c(theta, t)
 
         elif self.t_c(theta) <= t < self.t_rec(theta):
-            return T0 * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (self.t_c(theta) / self.t_s(theta)) ** (
-                -0.35) * \
-                   (t / self.t_c(theta)) ** (-0.6)
+            return self.T_smaller_t_rec(theta, t)
 
         return 1
+
+    def T_smaller_t_0(self, theta):
+        return 4.3 * 10 ** 5 * self.multi(theta, -0.17, -0.52, 0.35)
+
+    def T_smaller_t_s(self, theta, t):
+        return float(self.T_smaller_t_0(theta) * (t / self.t_0(theta)) ** (-0.45))
+
+    def T_smaller_t_c(self, theta, t):
+        return self.T_smaller_t_0(theta) * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (t / self.t_s(theta)) ** (-0.35)
+
+    def T_smaller_t_rec(self, theta, t):
+        return self.T_smaller_t_0(theta) * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (self.t_c(theta) /
+                                                                                             self.t_s(theta)) ** (-0.35) * \
+                   (t / self.t_c(theta)) ** (-0.6)
 
 
 class Wave:
@@ -96,18 +106,12 @@ class Wave:
         """
         return (const.c.value / frequency * u.m).to_value(u.angstrom)
 
-    def get_range_wave_length(self, steps):
-        start = self.ob.avgwave() - self.ob.rectwidth() / 2
-        stop = self.ob.avgwave() + self.ob.rectwidth() / 2
-        return np.linspace(start, stop, steps)
 
-    def get_range_freq(self, steps):
+    def get_range_freq(self):
         """
-        ******************************ask Iair about the width of the frequency************************
+        return the frequency by the self.ob.wave object
         """
-        start = self.length_to_frequency(self.ob.avgwave() + self.ob.rectwidth() / 2)
-        stop = self.length_to_frequency(self.ob.avgwave() - self.ob.rectwidth() / 2)
-        return np.linspace(start, stop, steps)
+        return np.flip(self.length_to_frequency(self.ob.wave))
 
 
 class L(Time):
@@ -118,17 +122,17 @@ class L(Time):
         self.system = system
         self.band_filter = band_filter
 
-    def light_travel_time(self, theta, t, L_function, nu=0) -> float:
+    def light_travel_time(self, theta, t, L_function) -> float:
         """eq 1 in Kozyreva paper"""
         dx = self.t_rc(theta) / self.steps
         return 2 / self.t_rc(theta) * \
-               np.trapz([self.ltt_integrant(theta, t, t_tag, L_function, nu) for t_tag in
+               np.trapz([self.ltt_integrant(theta, t, t_tag, L_function) for t_tag in
                          np.linspace(t - self.t_rc(theta), t, self.steps)],
                         dx=dx)
 
-    def ltt_integrant(self, theta, t, t_tag, L_function, nu) -> float:
+    def ltt_integrant(self, theta, t, t_tag, L_function) -> float:
         """the function inside the integral"""
-        return L_function(theta, t_tag, nu) * (1 - (t - t_tag) / self.t_rc(theta))
+        return L_function(theta, t_tag) * (1 - (t - t_tag) / self.t_rc(theta))
 
     def eq_2(self, theta, t, nu):
         """eq 2 in Kozyreva paper, after light travel time, nu is freq"""
@@ -171,8 +175,94 @@ class L(Time):
         return self.smaller_t_0(theta) * (t / self.t_0(theta)) ** (-4 / 3)
 
     def smaller_t_rec(self, theta, t) -> float:
-        return self.smaller_t_0(theta) * (self.t_s(theta) / self.t_0(theta)) ** (-4 / 3) * (t / self.t_s(theta)) ** (
-            -0.35)
+        return (self.smaller_t_0(theta) * (self.t_s(theta) / self.t_0(theta)) ** (-4 / 3) * (t / self.t_s(theta)) ** (
+            -0.35)).to_value()
+
+
+
+class Magnitude(L):
+    """the default is to give back an absolute magnitude"""
+
+    def get_filtered_abs_mag(self, theta, t):
+        """the eq after eq 5 in Kozyreva"""
+        offset = theta[3]
+        t_offset = t - offset
+        temp_limit = (h * self.wave.central_freq) / (3 * k * self.T.col(theta, t_offset, self.wave.central_freq))
+        use_func = None
+        if temp_limit < 0.3:
+            use_func = self.Rayleign_Jean_pseudo_flux
+
+        # theoretically, i need it to be smaller than 3 but i don't think we will get there
+        # and i don't want to make discontinuity
+        elif 0.3 < temp_limit:
+            use_func = self.absolute_filtered_pseudo_flux
+        return self.to_mag_from_pseudo_flux(self.light_travel_time(theta, t, use_func))
+
+    def absolute_filtered_pseudo_flux(self, theta, t):
+        return self.to_pseudo_flux_from_mag(self.absolute_mag_filtered(theta, t))
+
+    def absolute_mag_filtered(self, theta, t):
+        freq_range = self.wave.get_range_freq()
+        flux = np.array([self.eq_2(theta, t, nu) for nu in freq_range]) / (
+                    4 * np.pi * self.R(theta, t).to_value(u.cm) ** 2)
+        wave_range = self.wave.frequency_to_length(freq_range)
+
+        # flipped them so it would be from small to large
+        sp = S.ArraySpectrum(np.flip(wave_range), np.flip(flux), fluxunits='fnu')
+        return self.get_abs_mag_from_source(sp, theta, t)
+
+    def Rayleign_Jean_pseudo_flux(self, theta, t):
+        return self.to_pseudo_flux_from_mag(self.Rayleign_Jeans_Mag(theta, t))
+
+    def Rayleign_Jeans_Mag(self, theta, t):
+        """
+        absolute magnitude of a blackbody, after convertion.
+        without considering the distance of the supernova for generality.
+        """
+        bb = S.BlackBody(self.T.col(theta, t, nu=self.wave.central_freq))
+        return self.get_abs_mag_from_source(bb, theta, t)
+
+    def get_abs_mag_from_source(self, source, theta, t):
+        obs = S.Observation(source, self.wave.ob)
+
+        mag = obs.effstim(self.system)
+        return mag - 2.5 * np.log10(((self.R(theta, t) / (1 * u.solRad)) ** 2) * ((1000.0 * u.pc / (10.0 * u.pc)) ** 2))
+
+    def R(self, theta, t):
+        """
+        gets t in days, then converts the result to rsun
+        R = sqrt(L(t)/4pi sigma T^4)
+        for this one i need the bolometric luminosity! so i will use broken power law with ltt
+        """
+        sigma_sb = const.sigma_sb.to(u.erg * u.cm ** -2 * u.s ** -1 * u.K ** -4)
+        return np.sqrt(
+            (self.light_travel_time(theta, t, self.broken_power_law) * (u.erg / u.s) / (4 * np.pi * sigma_sb *
+                                                                                        (self.T.obs(theta,
+                                                                                                    t) * u.K) ** 4))).to(
+            u.solRad)
+
+    @staticmethod
+    def to_pseudo_flux_from_mag(mag):
+        return 10 ** (-0.4 * mag)
+
+    @staticmethod
+    def to_mag_from_pseudo_flux(pseudo_flux):
+        return -2.5 * np.log10(pseudo_flux)
+
+    @staticmethod
+    def convert_absolute_to_apparent(M, distance):
+        return M + 5 * np.log10(distance.to_value()) - 5
+
+    @staticmethod
+    def convert_apparent_to_absolute(m, distance):
+        return m + 5 - 5 * np.log10(distance.to_value())
+
+    def absolute_mag_to_fluxerr(self, mag, mag_err):
+        """
+        a bit of derivation of errors, check with iair if this is the right way!!
+        """
+        return abs(self.to_pseudo_flux_from_mag(mag) * (-0.4) * np.log(10) * mag_err)
+
 
 
 class FilteredL(L):
@@ -197,7 +287,7 @@ class FilteredL(L):
         return 1
 
     def integrated_freq_L(self, theta, t):
-        freq_range = self.wave.get_range_freq(self.steps)
+        freq_range = self.wave.get_range_freq()
         return np.trapz(y=[self.eq_2(theta, t, nu) for nu in freq_range],
                         x=freq_range)
 
@@ -263,88 +353,3 @@ class FilteredL(L):
         return 0.9 * self.light_travel_time(theta, t) * 15 / np.pi ** 4 * \
                (h / (k * self.T.col(theta, t, nu))) ** 4 * nu ** 3 * \
                (np.exp((h * nu) / (k * self.T.col(theta, t, nu))) - 1) ** -1
-
-
-class Magnitude(L):
-    """the default is to give back an absolute magnitude"""
-
-    def get_filtered_abs_mag(self, theta, t):
-        """the eq after eq 5 in Kozyreva"""
-        offset = theta[3]
-        t_offset = t - offset
-        temp_limit = (h * self.wave.central_freq) / (3 * k * self.T.col(theta, t_offset, self.wave.central_freq))
-        use_func = None
-        if temp_limit < 0.3:
-            use_func = self.Rayleign_Jean_pseudo_flux
-
-        # theoretically, i need it to be smaller than 3 but i don't think we will get there
-        # and i don't want to make discontinuity
-        elif 0.3 < temp_limit:
-            use_func = self.absolute_filtered_pseudo_flux
-        return self.to_mag_from_pseudo_flux(self.light_travel_time(theta, t, use_func))
-
-    def absolute_filtered_pseudo_flux(self, theta, t):
-        return self.to_pseudo_flux_from_mag(self.absolute_mag_filtered(theta, t))
-
-    def absolute_mag_filtered(self, theta, t):
-        freq_range = self.wave.get_range_freq(self.steps)
-        flux = np.array([self.eq_2(theta, t, nu) for nu in freq_range]) / (
-                    4 * np.pi * self.R(theta, t).to_value(u.cm) ** 2)
-        wave_range = self.wave.frequency_to_length(freq_range)
-
-        # flipped them so it would be from small to large
-        sp = S.ArraySpectrum(wave_range.flip, flux.flip, fluxunits='fnu')
-        return self.get_abs_mag_from_source(sp, theta, t)
-
-    def Rayleign_Jean_pseudo_flux(self, theta, t):
-        return self.to_pseudo_flux_from_mag(self.Rayleign_Jeans_Mag(theta, t))
-
-    def Rayleign_Jeans_Mag(self, theta, t):
-        """
-        absolute magnitude of a blackbody, after convertion.
-        without considering the distance of the supernova for generality.
-        """
-        bb = S.BlackBody(self.T.col(theta, t, nu=self.wave.central_freq))
-        return self.get_abs_mag_from_source(bb, theta, t)
-
-    def get_abs_mag_from_source(self, source, theta, t):
-        obs = S.Observation(source, self.wave.ob)
-
-        mag = obs.effstim(self.system)
-        return mag - 2.5 * np.log10(((self.R(theta, t) / (1 * u.solRad)) ** 2) * ((1000.0 * u.pc / (10.0 * u.pc)) ** 2))
-
-    def R(self, theta, t):
-        """
-        gets t in days, then converts the result to rsun
-        R = sqrt(L(t)/4pi sigma T^4)
-        for this one i need the bolometric luminosity! so i will use broken power law with ltt
-        """
-        sigma_sb = const.sigma_sb.to(u.erg * u.cm ** -2 * u.s ** -1 * u.K ** -4)
-        return np.sqrt(
-            (self.light_travel_time(theta, t, self.broken_power_law) * (u.erg / u.s) / (4 * np.pi * sigma_sb *
-                                                                                        (self.T.obs(theta,
-                                                                                                    t) * u.K) ** 4))).to(
-            u.solRad)
-
-    @staticmethod
-    def to_pseudo_flux_from_mag(mag):
-        return 10 ** (-0.4 * mag)
-
-    @staticmethod
-    def to_mag_from_pseudo_flux(pseudo_flux):
-        return -2.5 * np.log10(pseudo_flux)
-
-    @staticmethod
-    def convert_absolute_to_apparent(M, distance):
-        return M + 5 * np.log10(distance.to_value()) - 5
-
-    @staticmethod
-    def convert_apparent_to_absolute(m, distance):
-        return m + 5 - 5 * np.log10(distance.to_value())
-
-    def absolute_mag_to_fluxerr(self, mag, mag_err):
-        """
-        a bit of derivation of errors, check with iair if this is the right way!!
-        """
-        return abs(self.to_pseudo_flux_from_mag(mag) * (-0.4) * np.log(10) * mag_err)
-

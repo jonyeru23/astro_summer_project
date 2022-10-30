@@ -5,6 +5,9 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
+  <component name="PackageRequirementsSettings">
+    <option name="requirementsPath" value="" />
+  </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="PLAIN" />
     <option name="myDocStringFormat" value="Plain" />
@@ -15,5 +18,8 @@
         <option value="$MODULE_DIR$/SWN16-Sushaman" />
       </list>
     </option>
+  </component>
+  <component name="ReSTService">
+    <option name="DOC_DIR" value="C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\SWN16-Sushaman" />
   </component>
 </module>

@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from L_T_R import *
+import pandas as pd
 
 """this file is for testing the figures from Kozyreva and a bit from Shusman"""
 
@@ -19,6 +20,21 @@ progenitors = {
     'm15l15rot0': m15l15rot0,
     'm15l5rot8': m15l5rot8
 }
+
+
+def test_convergence_integral():
+    """i want to test when do the two integrals ltt and L_nu convergent"""
+    t = 0.73999995*u.d
+    mag_values = []
+    for i in range(1000):
+        mag = Magnitude(steps=i)
+        mag_values.append(mag.to_mag_from_pseudo_flux(mag.light_travel_time(theta, t, mag.absolute_filtered_pseudo_flux)))
+    plt.plot(range(1000), mag_values)
+    plt.xlabel('number of steps')
+    plt.ylabel('value')
+    plt.show()
+
+
 
 def test_classes():
     Lumi = L(100)
@@ -198,5 +214,4 @@ def test_random_stuff():
     print(b-a)
 
 if __name__ == '__main__':
-    # test_fig_17_19_shusman(200)
-    print(const.L_bol0.to(u.erg / u.s))
+    test_convergence_integral()
