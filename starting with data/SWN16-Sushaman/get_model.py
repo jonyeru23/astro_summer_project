@@ -1,5 +1,6 @@
 from L_T_R import *
 import emcee
+import pandas as pd
 """
 theta = [(R/500)[solRad], (M_ej/15)[solMass], (E_exp/(10**51))[erg], t_offset[dyas]]
 i need to check with iair about the flux issue.
@@ -56,10 +57,26 @@ class LogPosterior(Magnitude):
 
 
 class Sampler(LogPosterior):
-    def __init__(self, steps=100, band_filter='V', system='VegaMag', nwalkers=8, ndim=4):
+    def __init__(self, data_file_path, sheet_name, steps=100, band_filter='V', system='VegaMag', nwalkers=8, ndim=4):
         super().__init__(steps, band_filter, system)
         self.nwalkers = nwalkers
         self.ndim = ndim
+
+        x, y, yerr = self.get_data(data_file_path, sheet_name)
+        self.x = x
+        self.y = y
+        self.yerr = yerr
+
+
+    @staticmethod
+    def get_data(file_path, sheet_name):
+        data = pd.read_excel(file_path, sheet_name=sheet_name)
+
+        t = np.array(data.loc[:, 'JD - 2457651.0[day]'])
+        meas_mag = np.array(data.loc[:, 'V[mag]'])
+        meas_mag_err = np.array(data.loc[:, 'error_V[mag]'])
+
+        return t, meas_mag, meas_mag_err
 
     def set_walkers(self):
         """
@@ -70,13 +87,14 @@ class Sampler(LogPosterior):
         initial_spread = [0.2, 0.4, 0.5, 0.2]
         return np.random.randn(self.nwalkers, self.ndim) * initial_spread + initial_guess
 
-    def write_sampler(self, file_name, x, y, yerr, steps):
+    def write_sampler(self, sampler_file_name, steps):
         initial_pos = self.set_walkers()
 
-        backend = emcee.backends.HDFBackend(file_name)
+        backend = emcee.backends.HDFBackend(sampler_file_name)
         backend.reset(self.nwalkers, self.ndim)
 
-        sampler = emcee.EnsembleSampler(self.nwalkers, self.ndim, self.log_posterior, backend=backend, args=(x, y, yerr))
+        sampler = emcee.EnsembleSampler(self.nwalkers, self.ndim, self.log_posterior, backend=backend,
+                                        args=(self.x, self.y, self.yerr))
 
         sampler.run_mcmc(initial_pos, steps, progress=True)
 
