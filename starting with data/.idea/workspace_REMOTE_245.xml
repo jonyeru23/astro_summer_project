@@ -2,13 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ee90ec9a-244f-4b62-98f6-75b4b0228df2" name="Default Changelist" comment="">
-<<<<<<< HEAD
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-=======
       <change afterPath="$PROJECT_DIR$/SWN16-Sushaman/get_model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SWN16-Sushaman/L_T_R.py" beforeDir="false" afterPath="$PROJECT_DIR$/SWN16-Sushaman/L_T_R.py" afterDir="false" />
->>>>>>> 7d312932fc33c6eddfe21802d5e7519d33812695
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

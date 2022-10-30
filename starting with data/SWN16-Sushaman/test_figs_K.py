@@ -198,4 +198,5 @@ def test_random_stuff():
     print(b-a)
 
 if __name__ == '__main__':
-    test_fig_17_19_shusman(200)
+    # test_fig_17_19_shusman(200)
+    print(const.L_bol0.to(u.erg / u.s))
