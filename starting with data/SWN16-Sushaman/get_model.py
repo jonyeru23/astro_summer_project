@@ -3,16 +3,16 @@ import emcee
 import pandas as pd
 """
 theta = [(R/500)[solRad], (M_ej/15)[solMass], (E_exp/(10**51))[erg], t_offset[dyas]]
-i need to check with iair about the flux issue.
 """
 
 
 class LogPosterior(Magnitude):
     @staticmethod
     def log_prior(theta):
+        """using what iair gave me, for mass and offset, the rest from the other student"""
         R500, M15, E51, toffset_d = theta
 
-        if 0.6 < M15 < 2 and 0.1 < R500 < 4 and 0.1 < E51 < 5 and 0.70342593 < toffset_d < 0.73376157:
+        if 0.0005 < R500 < 4 and 0.005/15 < M15 < 1/15 and 0.1 < E51 < 5 and 0.70342593 < toffset_d < 0.73376157:
             return 0.0  # log(1)
         else:
             return -np.inf  # log(0)
@@ -26,7 +26,7 @@ class LogPosterior(Magnitude):
         all the data is in the form of np.array.
         """
         absolute_mag = self.convert_apparent_to_absolute(meas_mag, distance)
-        absolute_mag_err = self.convert_apparent_to_absolute(meas_mag_err, distance)
+        absolute_mag_err = meas_mag_err
 
         meas_flux = self.to_pseudo_flux_from_mag(absolute_mag)
         meas_flux_err = self.absolute_mag_to_fluxerr(absolute_mag, absolute_mag_err)
@@ -83,8 +83,8 @@ class Sampler(LogPosterior):
         initialize walkers -  theta = [R500, M15, E51, offset]
         the guess is from the other student
         """
-        initial_guess = [1, 2, 2.5, 0.01]
-        initial_spread = [0.2, 0.4, 0.5, 0.2]
+        initial_guess = [1, 0.02/15, 2.5, 0.715]
+        initial_spread = [0.2, 0.002/15, 0.5, 0.01]
         return np.random.randn(self.nwalkers, self.ndim) * initial_spread + initial_guess
 
     def write_sampler(self, sampler_file_name, steps):

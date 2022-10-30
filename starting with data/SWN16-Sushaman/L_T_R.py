@@ -50,8 +50,8 @@ class T(Time):
     def col(self, theta, t, nu):
         """nu is frequency"""
         m = 11
-        # return self.obs(theta, t) * (1 + (h * nu / (3 * k * self.obs(theta, t))) ** (-0.2 * m)) ** -(1 / m)
-        return self.obs(theta, t) * (h * nu / (3 * k * self.obs(theta, t))) ** 0.2
+        return self.obs(theta, t) * (1 + (h * nu / (3 * k * self.obs(theta, t))) ** (-0.2 * m)) ** -(1 / m)
+        # return self.obs(theta, t) * (h * nu / (3 * k * self.obs(theta, t))) ** 0.2
 
     def obs(self, theta, t):
         """eq 8 in Shusman"""
@@ -340,7 +340,7 @@ class Magnitude(L):
 
     @staticmethod
     def convert_apparent_to_absolute(m, distance):
-        return m + 5 - 5 * np.log10(distance)
+        return m + 5 - 5 * np.log10(distance.to_value())
 
     def absolute_mag_to_fluxerr(self, mag, mag_err):
         """
