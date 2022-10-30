@@ -333,3 +333,18 @@ class Magnitude(L):
     @staticmethod
     def to_mag_from_pseudo_flux(pseudo_flux):
         return -2.5 * np.log10(pseudo_flux)
+
+    @staticmethod
+    def convert_absolute_to_apparent(M, distance):
+        return M + 5 * np.log10(distance.to_value()) - 5
+
+    @staticmethod
+    def convert_apparent_to_absolute(m, distance):
+        return m + 5 - 5 * np.log10(distance)
+
+    def absolute_mag_to_fluxerr(self, mag, mag_err):
+        """
+        a bit of derivation of errors, check with iair if this is the right way!!
+        """
+        return abs(self.to_pseudo_flux_from_mag(mag) * (-0.4) * np.log(10) * mag_err)
+

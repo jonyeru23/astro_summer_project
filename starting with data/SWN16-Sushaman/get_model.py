@@ -6,7 +6,7 @@ i need to check with iair about the flux issue.
 """
 
 
-class LogPosterior(FilteredL):
+class LogPosterior(Magnitude):
     @staticmethod
     def log_prior(theta):
         R500, M15, E51, toffset_d = theta
@@ -17,11 +17,20 @@ class LogPosterior(FilteredL):
             return -np.inf  # log(0)
 
     def log_likelihood(self, time, meas_mag, meas_mag_err, theta):
-        """not finished, i need to sort out all the stuff regarding the apparent and absolute mag"""
-        meas_flux = self.mag_to_flux(meas_mag)
-        meas_flux_err = self.mag_to_fluxerr(meas_mag, meas_mag_err)
+        """
+        my data is apparent magnitude. i converted it to absolute magnitude and then to pseudo flux
+        the function i am comparing it to gives me absolute magnitude, and i convert it to pseudo flux as well
+        then i can compare the two and get chi2 and everything.
 
-        expected_flux = np.array([self.get_filtered_L(theta, t) for t in time])
+        all the data is in the form of np.array.
+        """
+        absolute_mag = self.convert_apparent_to_absolute(meas_mag, distance)
+        absolute_mag_err = self.convert_apparent_to_absolute(meas_mag_err, distance)
+
+        meas_flux = self.to_pseudo_flux_from_mag(absolute_mag)
+        meas_flux_err = self.absolute_mag_to_fluxerr(absolute_mag, absolute_mag_err)
+
+        expected_flux = np.array([self.to_pseudo_flux_from_mag(self.get_filtered_abs_mag(theta, t)) for t in time])
 
         chi2 = self.chi2(meas_flux, meas_flux_err, expected_flux)
 
