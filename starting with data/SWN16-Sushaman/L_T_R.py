@@ -2,6 +2,8 @@ from astropy import units as u
 from astropy import constants as const
 import numpy as np
 import pysynphot as S
+import scipy.integrate
+import scipy.misc
 
 h = const.h.to_value(u.erg / u.Hz)
 k = const.k_B.to_value(u.erg / u.K)
@@ -67,7 +69,7 @@ class T(Time):
         elif self.t_c(theta) <= t < self.t_rec(theta):
             return self.T_smaller_t_rec(theta, t)
 
-        return 1
+        return 1.0
 
     def T_smaller_t_0(self, theta):
         return 4.3 * 10 ** 5 * self.multi(theta, -0.17, -0.52, 0.35)
@@ -76,12 +78,15 @@ class T(Time):
         return float(self.T_smaller_t_0(theta) * (t / self.t_0(theta)) ** (-0.45))
 
     def T_smaller_t_c(self, theta, t):
-        return self.T_smaller_t_0(theta) * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (t / self.t_s(theta)) ** (-0.35)
+        return float(
+            self.T_smaller_t_0(theta) * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (t / self.t_s(theta)) ** (
+                -0.35))
 
     def T_smaller_t_rec(self, theta, t):
-        return self.T_smaller_t_0(theta) * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (self.t_c(theta) /
-                                                                                             self.t_s(theta)) ** (-0.35) * \
-                   (t / self.t_c(theta)) ** (-0.6)
+        return float(self.T_smaller_t_0(theta) * (self.t_s(theta) / self.t_0(theta)) ** (-0.45) * (self.t_c(theta) /
+                                                                                                   self.t_s(theta)) ** (
+                         -0.35) * \
+                     (t / self.t_c(theta)) ** (-0.6))
 
 
 class Wave:
@@ -106,7 +111,6 @@ class Wave:
         """
         return (const.c.value / frequency * u.m).to_value(u.angstrom)
 
-
     def get_range_freq(self):
         """
         return the frequency by the self.ob.wave object
@@ -114,23 +118,48 @@ class Wave:
         return np.flip(self.length_to_frequency(self.ob.wave))
 
 
-class L(Time):
-    def __init__(self, steps=100, band_filter='V', system='VegaMag'):
+class Integrator:
+    """
+    integral approxiamtor, according to the following webpages:
+    https://www.whitman.edu/mathematics/calculus_online/section08.06.html
+    https://en.wikipedia.org/wiki/Five-point_stencil
+    all the names are trying to be similar to these pages.
+    Using the default value for linspace
+    """
+
+    def __init__(self, error=0.001):
+        self.error = error
+
+    def get_steps(self, func, a, b, *args):
+        return self.make_even(round(((b - a) ** 5 * self.get_M(func, a, b, args) / (180 * self.error)) ** (1 / 4)) + 1)
+
+    @staticmethod
+    def make_even(n):
+        """it is one of the demand for simpson's rule"""
+        return n // 2 * 2
+
+    def get_M(self, func, a, b, *args):
+        return max(scipy.misc.derivative(func, x, dx=10 ** -2, n=4, order=5, args=args) for x in np.linspace(a, b))
+
+
+class L(Time, Integrator):
+    def __init__(self, error=0.001, band_filter='V', system='VegaMag'):
+        super().__init__(error)
         self.T = T()
-        self.steps = steps
         self.wave = Wave(band_filter, system)
         self.system = system
         self.band_filter = band_filter
 
     def light_travel_time(self, theta, t, L_function) -> float:
         """eq 1 in Kozyreva paper"""
-        dx = self.t_rc(theta) / self.steps
+        n = self.get_steps(self.ltt_integrant, t - self.t_rc(theta), t, (theta, t, L_function))
+        dx = self.t_rc(theta) / n
         return 2 / self.t_rc(theta) * \
-               np.trapz([self.ltt_integrant(theta, t, t_tag, L_function) for t_tag in
-                         np.linspace(t - self.t_rc(theta), t, self.steps)],
-                        dx=dx)
+               scipy.integrate.simpson([self.ltt_integrant(t_tag, theta, t, L_function) for t_tag in
+                                        np.linspace(t - self.t_rc(theta), t, n + 1)],
+                                       dx=dx)
 
-    def ltt_integrant(self, theta, t, t_tag, L_function) -> float:
+    def ltt_integrant(self, t_tag, theta, t, L_function) -> float:
         """the function inside the integral"""
         return L_function(theta, t_tag) * (1 - (t - t_tag) / self.t_rc(theta))
 
@@ -162,22 +191,22 @@ class L(Time):
 
         elif self.t_s(theta) <= t <= self.t_rec(theta):
             return self.smaller_t_rec(theta, t)
-        return 1
+        return 1.0
 
     def smaller_t_0(self, theta) -> float:
         return 1.8 * 10 ** 45 * self.multi(theta, -0.65, -0.11, 1.37)
 
     def smaller_0(self, theta, t) -> float:
         ratio = t / self.t_0(theta)
-        return self.smaller_t_0(theta) * np.exp((-0.35 * ratio ** 2) + (0.15 * ratio))
+        return float(self.smaller_t_0(theta) * np.exp((-0.35 * ratio ** 2) + (0.15 * ratio)))
 
     def smaller_t_s(self, theta, t) -> float:
-        return self.smaller_t_0(theta) * (t / self.t_0(theta)) ** (-4 / 3)
+        return float(self.smaller_t_0(theta) * (t / self.t_0(theta)) ** (-4 / 3))
 
     def smaller_t_rec(self, theta, t) -> float:
-        return (self.smaller_t_0(theta) * (self.t_s(theta) / self.t_0(theta)) ** (-4 / 3) * (t / self.t_s(theta)) ** (
-            -0.35)).to_value()
-
+        return float(
+            self.smaller_t_0(theta) * (self.t_s(theta) / self.t_0(theta)) ** (-4 / 3) * (t / self.t_s(theta)) ** (
+                -0.35))
 
 
 class Magnitude(L):
@@ -186,7 +215,7 @@ class Magnitude(L):
     def get_filtered_abs_mag(self, theta, t):
         """the eq after eq 5 in Kozyreva"""
         offset = theta[3]
-        t_offset = t - offset
+        t_offset = (t - offset) * u.d
         temp_limit = (h * self.wave.central_freq) / (3 * k * self.T.col(theta, t_offset, self.wave.central_freq))
         use_func = None
         if temp_limit < 0.3:
@@ -204,7 +233,7 @@ class Magnitude(L):
     def absolute_mag_filtered(self, theta, t):
         freq_range = self.wave.get_range_freq()
         flux = np.array([self.eq_2(theta, t, nu) for nu in freq_range]) / (
-                    4 * np.pi * self.R(theta, t).to_value(u.cm) ** 2)
+                4 * np.pi * self.R(theta, t).to_value(u.cm) ** 2)
         wave_range = self.wave.frequency_to_length(freq_range)
 
         # flipped them so it would be from small to large
@@ -235,11 +264,8 @@ class Magnitude(L):
         for this one i need the bolometric luminosity! so i will use broken power law with ltt
         """
         sigma_sb = const.sigma_sb.to(u.erg * u.cm ** -2 * u.s ** -1 * u.K ** -4)
-        return np.sqrt(
-            (self.light_travel_time(theta, t, self.broken_power_law) * (u.erg / u.s) / (4 * np.pi * sigma_sb *
-                                                                                        (self.T.obs(theta,
-                                                                                                    t) * u.K) ** 4))).to(
-            u.solRad)
+        return np.sqrt((self.light_travel_time(theta, t, self.broken_power_law) *
+                        (u.erg / u.s) / (4 * np.pi * sigma_sb * (self.T.obs(theta, t) * u.K) ** 4))).to(u.solRad)
 
     @staticmethod
     def to_pseudo_flux_from_mag(mag):
@@ -262,7 +288,6 @@ class Magnitude(L):
         a bit of derivation of errors, check with iair if this is the right way!!
         """
         return abs(self.to_pseudo_flux_from_mag(mag) * (-0.4) * np.log(10) * mag_err)
-
 
 
 class FilteredL(L):
