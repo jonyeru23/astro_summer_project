@@ -165,9 +165,19 @@ class TestIntegrator(unittest.TestCase):
 
     def test_actual_func(self):
         t = (self.mag.t_0(theta) + self.mag.t_s(theta)) / 2
-        print(self.integrator.get_steps(L.ltt_integrant, t - self.mag.t_rc(theta), t,
-                                        (theta, t, self.mag.absolute_filtered_pseudo_flux)))
-
+        # print(self.integrator.get_steps(self.mag.ltt_integrant, (t - self.mag.t_rc(theta)).to_value(), t.to_value(),
+        #                                 theta, t, self.mag.absolute_filtered_pseudo_flux))
+        print(scipy.integrate.quad(self.mag.ltt_integrant, (t - self.mag.t_rc(theta)).to_value(), t.to_value(),
+                                   args=(theta, t, self.mag.absolute_filtered_pseudo_flux)))
+    def test_how_astropy_reacts(self):
+        """
+        checks how can astropy check if what i have is indeed a float or u.d
+        """
+        t = 4.33334 * u.d
+        if type(1) is not u.quantity.Quantity:
+            assert True
+        # assert not t // 2 * 2 == 4 * u.d
+        assert max(x for x in range(10)) == 9
 
 
 

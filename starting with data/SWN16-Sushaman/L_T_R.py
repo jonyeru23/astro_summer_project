@@ -131,15 +131,18 @@ class Integrator:
         self.error = error
 
     def get_steps(self, func, a, b, *args):
-        return self.make_even(round(((b - a) ** 5 * self.get_M(func, a, b, args) / (180 * self.error)) ** (1 / 4)) + 1)
+        return self.make_even(((b - a) ** 5 * self.get_M(func, a, b, *args) / (180 * self.error)) ** (1 / 4) + 1)
 
     @staticmethod
     def make_even(n):
         """it is one of the demand for simpson's rule"""
+        print(n)
         return n // 2 * 2
 
     def get_M(self, func, a, b, *args):
-        return max(scipy.misc.derivative(func, x, dx=10 ** -2, n=4, order=5, args=args) for x in np.linspace(a, b))
+        print([scipy.misc.derivative(func, x, dx=10 ** -2, n=4, order=5, args=args) for x in np.linspace(a, b)])
+        print(max([float(scipy.misc.derivative(func, x, dx=10 ** -2, n=4, order=5, args=args)) for x in np.linspace(a, b)]))
+        return 1
 
 
 class L(Time, Integrator):
@@ -161,6 +164,10 @@ class L(Time, Integrator):
 
     def ltt_integrant(self, t_tag, theta, t, L_function) -> float:
         """the function inside the integral"""
+        if type(t) is not u.quantity.Quantity:
+            t *= u.d
+        elif type(t_tag) is not u.quantity.Quantity:
+            t_tag *= u.d
         return L_function(theta, t_tag) * (1 - (t - t_tag) / self.t_rc(theta))
 
     def eq_2(self, theta, t, nu):
@@ -264,7 +271,7 @@ class Magnitude(L):
         for this one i need the bolometric luminosity! so i will use broken power law with ltt
         """
         sigma_sb = const.sigma_sb.to(u.erg * u.cm ** -2 * u.s ** -1 * u.K ** -4)
-        return np.sqrt((self.light_travel_time(theta, t, self.broken_power_law) *
+        return np.sqrt((self.broken_power_law(theta, t) *
                         (u.erg / u.s) / (4 * np.pi * sigma_sb * (self.T.obs(theta, t) * u.K) ** 4))).to(u.solRad)
 
     @staticmethod
