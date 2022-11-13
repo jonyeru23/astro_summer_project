@@ -1,6 +1,7 @@
 import unittest
 from L_T_R import *
 from astropy import units as u
+import time
 
 
 theta = [812 / 500, 8.09 / 15, 1.1, 0]
@@ -23,6 +24,7 @@ class TestWave(unittest.TestCase):
             for i in range(9):
                 assert freqs[i + 1] - freqs[i] > 0
             np.testing.assert_allclose(wave.ob.wave, np.flip(wave.frequency_to_length(freqs)), rtol=1e-02)
+            # print(len(freqs))
 
 
 class TestTime(unittest.TestCase):
@@ -108,6 +110,11 @@ class TestL(unittest.TestCase):
         for time in self.times:
             self.assertEqual(type(self.L.eq_2(self.theta, time, self.nu)), np.float64)
 
+    def test_broken_power_law(self):
+        for time in self.times:
+            self.assertEqual(type(self.L.broken_power_law(self.theta, time)), float)
+
+
     """still need to test the rest of the functions"""
     # def test_integrant(self):
     #     for i, time in enumerate(self.times):
@@ -123,6 +130,24 @@ class TestMagnitude(unittest.TestCase):
         self.theta = [812 / 500, 8.09 / 15, 1.1, 0]
         self.times = [0 * u.d, self.mag.t_0(self.theta), self.mag.t_s(self.theta), self.mag.t_rec(self.theta)]
         self.t = 1 * u.d
+
+    def test_absolute_mag_filtered(self):
+        for t in self.times:
+            t1 = time.perf_counter()
+            mag1 = [self.mag.absolute_mag_filtered(self.theta, t) for _ in range(10)]
+            t2 = time.perf_counter()
+            print(t2-t1)
+
+
+    def test_get_mag_from_source(self):
+        for t in self.times:
+            bb = S.BlackBody(5e6)
+            self.assertEqual(type(self.mag.get_abs_mag_from_source(bb, self.theta, t)), float)
+
+    def test_R(self):
+        for t in self.times:
+            self.assertEqual(self.mag.R(self.theta, t).unit, u.solRad)
+
 
     def test_apparent_to_absolute(self):
         for absolute_mag in range(-15, 15):
@@ -153,31 +178,36 @@ class TestIntegrator(unittest.TestCase):
         self.theta = [812 / 500, 8.09 / 15, 1.1, 0]
         self.error = 0.001
 
-    def test_get_M(self):
-        self.assertTrue(11.5 < self.integrator.get_M(self.func_example, self.a, self.b) < 12)
-
-    def test_get_steps(self):
-        self.assertAlmostEqual(self.integrator.get_steps(self.error, self.func_example, self.a, self.b), 4)
-
-    def test_make_enev(self):
-        for n in range(20):
-            self.assertTrue(self.integrator.make_even(n) % 2 == 0)
+    # def test_get_M(self):
+    #     self.assertTrue(11.5 < self.integrator.get_M(self.func_example, self.a, self.b) < 12)
+    #
+    # def test_get_steps(self):
+    #     self.assertAlmostEqual(self.integrator.get_steps(self.error, self.func_example, self.a, self.b), 4)
+    #
+    # def test_make_enev(self):
+    #     for n in range(20):
+    #         self.assertTrue(self.integrator.make_even(n) % 2 == 0)
 
     def test_actual_func(self):
         t = (self.mag.t_0(theta) + self.mag.t_s(theta)) / 2
         # print(self.integrator.get_steps(self.mag.ltt_integrant, (t - self.mag.t_rc(theta)).to_value(), t.to_value(),
         #                                 theta, t, self.mag.absolute_filtered_pseudo_flux))
-        print(scipy.integrate.quad(self.mag.ltt_integrant, (t - self.mag.t_rc(theta)).to_value(), t.to_value(),
-                                   args=(theta, t, self.mag.absolute_filtered_pseudo_flux)))
-    def test_how_astropy_reacts(self):
-        """
-        checks how can astropy check if what i have is indeed a float or u.d
-        """
-        t = 4.33334 * u.d
-        if type(1) is not u.quantity.Quantity:
-            assert True
-        # assert not t // 2 * 2 == 4 * u.d
-        assert max(x for x in range(10)) == 9
+        for epsab in [1.49e-08, 1.49e-04, 1.49e-01]:
+            t1 = time.perf_counter()
+            l = [scipy.integrate.quad(self.mag.ltt_integrant, (t - self.mag.t_rc(theta)).to_value(), t.to_value(),
+                                       args=(theta, t, self.mag.absolute_filtered_pseudo_flux), epsabs=epsab) for _ in range(10)]
+            t2 = time.perf_counter()
+            print(f"epabs = {epsab}: {t2-t1}")
+
+    # def test_how_astropy_reacts(self):
+    #     """
+    #     checks how can astropy check if what i have is indeed a float or u.d
+    #     """
+    #     t = 4.33334 * u.d
+    #     if type(1) is not u.quantity.Quantity:
+    #         assert True
+    #     # assert not t // 2 * 2 == 4 * u.d
+    #     assert max(x for x in range(10)) == 9
 
 
 

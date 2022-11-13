@@ -125,6 +125,8 @@ class Integrator:
     https://en.wikipedia.org/wiki/Five-point_stencil
     all the names are trying to be similar to these pages.
     Using the default value for linspace
+
+    wll this is irrelevant, but i am going to keep it for now
     """
 
     def __init__(self, error=0.001):
@@ -140,6 +142,7 @@ class Integrator:
         return n // 2 * 2
 
     def get_M(self, func, a, b, *args):
+        """irrelevant function, will delete later"""
         print([scipy.misc.derivative(func, x, dx=10 ** -2, n=4, order=5, args=args) for x in np.linspace(a, b)])
         print(max([float(scipy.misc.derivative(func, x, dx=10 ** -2, n=4, order=5, args=args)) for x in np.linspace(a, b)]))
         return 1
@@ -154,13 +157,18 @@ class L(Time, Integrator):
         self.band_filter = band_filter
 
     def light_travel_time(self, theta, t, L_function) -> float:
-        """eq 1 in Kozyreva paper"""
-        n = self.get_steps(self.ltt_integrant, t - self.t_rc(theta), t, (theta, t, L_function))
-        dx = self.t_rc(theta) / n
-        return 2 / self.t_rc(theta) * \
-               scipy.integrate.simpson([self.ltt_integrant(t_tag, theta, t, L_function) for t_tag in
-                                        np.linspace(t - self.t_rc(theta), t, n + 1)],
-                                       dx=dx)
+        """
+        eq 1 in Kozyreva paper
+        quad documentation: https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.quad.html
+        """
+        # n = self.get_steps(self.ltt_integrant, t - self.t_rc(theta), t, (theta, t, L_function))
+        # dx = self.t_rc(theta) / n
+        # return 2 / self.t_rc(theta) * \
+        #        scipy.integrate.simpson([self.ltt_integrant(t_tag, theta, t, L_function) for t_tag in
+        #                                  np.linspace(t - self.t_rc(theta), t, n + 1)],
+        #                                dx=dx)
+        return scipy.integrate.quad(self.ltt_integrant, (t - self.t_rc(theta)).to_value(), t.to_value(),
+                                    args=(theta, t, L_function))[0]
 
     def ltt_integrant(self, t_tag, theta, t, L_function) -> float:
         """the function inside the integral"""
@@ -239,8 +247,10 @@ class Magnitude(L):
 
     def absolute_mag_filtered(self, theta, t):
         freq_range = self.wave.get_range_freq()
+
         flux = np.array([self.eq_2(theta, t, nu) for nu in freq_range]) / (
                 4 * np.pi * self.R(theta, t).to_value(u.cm) ** 2)
+
         wave_range = self.wave.frequency_to_length(freq_range)
 
         # flipped them so it would be from small to large
@@ -262,13 +272,14 @@ class Magnitude(L):
         obs = S.Observation(source, self.wave.ob)
 
         mag = obs.effstim(self.system)
-        return mag - 2.5 * np.log10(((self.R(theta, t) / (1 * u.solRad)) ** 2) * ((1000.0 * u.pc / (10.0 * u.pc)) ** 2))
+        return float(mag - 2.5 * np.log10(((self.R(theta, t) / (1 * u.solRad)) ** 2) * ((1000.0 * u.pc / (10.0 * u.pc)) ** 2)))
 
     def R(self, theta, t):
         """
         gets t in days, then converts the result to rsun
         R = sqrt(L(t)/4pi sigma T^4)
-        for this one i need the bolometric luminosity! so i will use broken power law with ltt
+        for this one i need the bolometric luminosity! so i will use broken power law.
+        no ltt beacuse it was an endless recursion
         """
         sigma_sb = const.sigma_sb.to(u.erg * u.cm ** -2 * u.s ** -1 * u.K ** -4)
         return np.sqrt((self.broken_power_law(theta, t) *
