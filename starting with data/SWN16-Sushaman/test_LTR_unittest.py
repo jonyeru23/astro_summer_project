@@ -199,7 +199,7 @@ class TestIntegrator(unittest.TestCase):
 
 class TestLogPosterior(unittest.TestCase):
     def setUp(self) -> None:
-        self.good_theta = [4 / 500, 0.5 / 15, 1.1, (0.73376157 + 0.70342593)/2]
+        self.theta = [812 / 500, 8.09 / 15, 1.1, 0]
         self.bad_theta = [812 / 500, 8.09 / 15, 1.1, 0]
         self.logPost = LogPosterior()
         path = r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\excel files\combined_data.xlsx"
@@ -210,7 +210,7 @@ class TestLogPosterior(unittest.TestCase):
         self.yerr = yerr
 
     def test_prior(self):
-        self.assertEqual(self.logPost.log_prior(self.good_theta), 0)
+        self.assertEqual(self.logPost.log_prior(self.theta), 0)
         self.assertEqual(self.logPost.log_prior(self.bad_theta), -np.inf)
 
     def test_chi2(self):
@@ -221,7 +221,9 @@ class TestLogPosterior(unittest.TestCase):
         self.assertEqual(type(self.logPost.chi2(meas, error, expected)), np.ndarray)
 
     def test_log_likelihood(self):
-        self.assertIs(self.logPost.log_likelihood(self.x, self.y, self.yerr, self.good_theta), np.float64)
+        likihood = self.logPost.log_likelihood(self.x, self.y, self.yerr, self.theta)
+        print(likihood)
+        self.assertEqual(type(likihood), np.float64)
 
 if __name__ == '__main__':
     unittest.main()

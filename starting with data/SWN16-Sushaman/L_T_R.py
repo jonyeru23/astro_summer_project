@@ -234,9 +234,12 @@ class Magnitude(L):
 
         # theoretically, i need it to be smaller than 3 but i don't think we will get there
         # and i don't want to make discontinuity
-        elif 0.3 < temp_limit:
+        elif 0.3 < temp_limit < 3:
             use_func = self.absolute_filtered_pseudo_flux
+        else:
+            return 0
         return self.to_mag_from_pseudo_flux(self.light_travel_time(theta, t_offset, use_func))
+
 
     def absolute_filtered_pseudo_flux(self, theta, t):
         return self.to_pseudo_flux_from_mag(self.absolute_mag_filtered(theta, t))

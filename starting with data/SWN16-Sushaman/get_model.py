@@ -1,6 +1,7 @@
 from L_T_R import *
 import emcee
 import pandas as pd
+from multiprocessing import Pool
 """
 theta = [(R/500)[solRad], (M_ej/15)[solMass], (E_exp/(10**51))[erg], t_offset[dyas]]
 """
@@ -12,7 +13,7 @@ class LogPosterior(Magnitude):
         """using what iair gave me, for mass and offset, the rest from the other student"""
         R500, M15, E51, toffset_d = theta
 
-        if 0.0005 < R500 < 4 and 0.005/15 < M15 < 1/15 and 0.1 < E51 < 5 and 0.70342593 < toffset_d < 0.73376157:
+        if 0.0005 < R500 < 4 and 0.6 < M15 < 2 and 0.1 < E51 < 5 and 0.70342593 < toffset_d < 0.73376157:
             return 0.0  # log(1)
         else:
             return -np.inf  # log(0)
@@ -33,11 +34,20 @@ class LogPosterior(Magnitude):
 
         expected_flux = np.array([self.to_pseudo_flux_from_mag(self.get_filtered_abs_mag(theta, t)) for t in time])
 
+        meas_flux, meas_flux_err, expected_flux = self.delete_beyond_validity(meas_flux, meas_flux_err, expected_flux)
+
         chi2 = self.chi2(meas_flux, meas_flux_err, expected_flux)
 
         normalization = self.normalization(meas_flux)
 
         return -0.5 * np.sum(normalization + chi2)
+
+    @staticmethod
+    def delete_beyond_validity(meas_flux, meas_flux_err, expected_flux):
+        expected_flux = expected_flux[expected_flux > 1]
+        meas_flux = meas_flux[:len(expected_flux)]
+        meas_flux_err = meas_flux_err[:len(expected_flux)]
+        return meas_flux, meas_flux_err, expected_flux
 
     @staticmethod
     def chi2(meas, meas_err, expected):
@@ -83,8 +93,8 @@ class Sampler(LogPosterior):
         initialize walkers -  theta = [R500, M15, E51, offset]
         the guess is from the other student
         """
-        initial_guess = [1, 0.02/15, 2.5, 0.715]
-        initial_spread = [0.2, 0.002/15, 0.5, 0.01]
+        initial_guess = [1, 1, 2.5, 0.715]
+        initial_spread = [0.2, 0.2, 0.5, 0.01]
         return np.random.randn(self.nwalkers, self.ndim) * initial_spread + initial_guess
 
     def write_sampler(self, sampler_file_name, steps):
@@ -92,11 +102,11 @@ class Sampler(LogPosterior):
 
         backend = emcee.backends.HDFBackend(sampler_file_name)
         backend.reset(self.nwalkers, self.ndim)
+        with Pool() as pool:
+            sampler = emcee.EnsembleSampler(self.nwalkers, self.ndim, self.log_posterior, backend=backend,
+                                            args=(self.x, self.y, self.yerr), pool=pool)
 
-        sampler = emcee.EnsembleSampler(self.nwalkers, self.ndim, self.log_posterior, backend=backend,
-                                        args=(self.x, self.y, self.yerr))
-
-        sampler.run_mcmc(initial_pos, steps, progress=True)
+            sampler.run_mcmc(initial_pos, steps, progress=True)
 
 
 
