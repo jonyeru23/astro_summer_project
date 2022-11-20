@@ -53,7 +53,7 @@ class LogPosterior(Magnitude):
         lp = self.log_prior(theta)
         if not np.isfinite(lp):
             return -np.inf
-        return lp + self.log_likelihood(theta, time, meas_mag, meas_mag_err)
+        return lp + self.log_likelihood(time, meas_mag, meas_mag_err, theta)
 
 
 class Sampler(LogPosterior):

@@ -2,6 +2,7 @@ import unittest
 from L_T_R import *
 from astropy import units as u
 import time
+from get_model import *
 
 
 theta = [812 / 500, 8.09 / 15, 1.1, 0]
@@ -133,10 +134,17 @@ class TestMagnitude(unittest.TestCase):
 
     def test_absolute_mag_filtered(self):
         for t in self.times:
+            use_func = self.mag.absolute_filtered_pseudo_flux
             t1 = time.perf_counter()
-            mag1 = [self.mag.absolute_mag_filtered(self.theta, t) for _ in range(10)]
+            mag1 = self.mag.to_mag_from_pseudo_flux(self.mag.light_travel_time(theta, t, use_func))
             t2 = time.perf_counter()
-            print(t2-t1)
+            print(f"Shusman {t2 - t1}")
+
+            use_func = self.mag.Rayleign_Jean_pseudo_flux
+            t1 = time.perf_counter()
+            mag1 = self.mag.to_mag_from_pseudo_flux(self.mag.light_travel_time(theta, t, use_func))
+            t2 = time.perf_counter()
+            print(f"Rayleign_Jean {t2 - t1}")
 
 
     def test_get_mag_from_source(self):
@@ -178,16 +186,6 @@ class TestIntegrator(unittest.TestCase):
         self.theta = [812 / 500, 8.09 / 15, 1.1, 0]
         self.error = 0.001
 
-    # def test_get_M(self):
-    #     self.assertTrue(11.5 < self.integrator.get_M(self.func_example, self.a, self.b) < 12)
-    #
-    # def test_get_steps(self):
-    #     self.assertAlmostEqual(self.integrator.get_steps(self.error, self.func_example, self.a, self.b), 4)
-    #
-    # def test_make_enev(self):
-    #     for n in range(20):
-    #         self.assertTrue(self.integrator.make_even(n) % 2 == 0)
-
     def test_actual_func(self):
         t = (self.mag.t_0(theta) + self.mag.t_s(theta)) / 2
         # print(self.integrator.get_steps(self.mag.ltt_integrant, (t - self.mag.t_rc(theta)).to_value(), t.to_value(),
@@ -199,18 +197,31 @@ class TestIntegrator(unittest.TestCase):
             t2 = time.perf_counter()
             print(f"epabs = {epsab}: {t2-t1}")
 
-    # def test_how_astropy_reacts(self):
-    #     """
-    #     checks how can astropy check if what i have is indeed a float or u.d
-    #     """
-    #     t = 4.33334 * u.d
-    #     if type(1) is not u.quantity.Quantity:
-    #         assert True
-    #     # assert not t // 2 * 2 == 4 * u.d
-    #     assert max(x for x in range(10)) == 9
+class TestLogPosterior(unittest.TestCase):
+    def setUp(self) -> None:
+        self.good_theta = [4 / 500, 0.5 / 15, 1.1, (0.73376157 + 0.70342593)/2]
+        self.bad_theta = [812 / 500, 8.09 / 15, 1.1, 0]
+        self.logPost = LogPosterior()
+        path = r"C:\Users\User\OneDrive - mail.tau.ac.il\Desktop\אוניברסיטה\אסטרו נודר\פרויקט קיץ\התחלה של קוד\astro_summer_project\starting with data\excel files\combined_data.xlsx"
 
+        x, y, yerr = Sampler.get_data(path, sheet_name='after ext')
+        self.x = x
+        self.y = y
+        self.yerr = yerr
 
+    def test_prior(self):
+        self.assertEqual(self.logPost.log_prior(self.good_theta), 0)
+        self.assertEqual(self.logPost.log_prior(self.bad_theta), -np.inf)
 
+    def test_chi2(self):
+        x = np.linspace(0, 100)
+        expected = x ** 2
+        meas = expected * np.random.normal(len(x))
+        error = np.array([0.1]*len(x))
+        self.assertEqual(type(self.logPost.chi2(meas, error, expected)), np.ndarray)
+
+    def test_log_likelihood(self):
+        self.assertIs(self.logPost.log_likelihood(self.x, self.y, self.yerr, self.good_theta), np.float64)
 
 if __name__ == '__main__':
     unittest.main()

@@ -25,24 +25,24 @@ class Time:
         R500, M15, E51, offset = theta
         return (M15 ** x) * (R500 ** y) * (E51 ** z)
 
-    def t_0(self, theta) -> float:
+    def t_0(self, theta) -> u.d:
         """t_0 is converted to days"""
         return (155 * self.multi(theta, 0.23, 1.39, -0.81) * u.s).to(u.d)
 
-    def t_s(self, theta) -> float:
+    def t_s(self, theta) -> u.d:
         """t_s in converted to days"""
         return (3.6 * self.multi(theta, 0.44, 1.49, -0.56) * u.h).to(u.d)
 
-    def t_c(self, theta) -> float:
+    def t_c(self, theta) -> u.d:
         """t_c in days"""
         return 3.2 * self.multi(theta, 0.97, 2.02, -1.19) * u.d
 
-    def t_rec(self, theta) -> float:
+    def t_rec(self, theta) -> u.d:
         """t_rec in days"""
         return 16.6 * self.multi(theta, 0.22, 0.76, -0.43) * u.d
 
     @staticmethod
-    def t_rc(theta) -> float:
+    def t_rc(theta) -> u.d:
         """t_rc in days"""
         R500 = theta[0]
         return ((R500 * 500 * u.solRad).to(u.meter) / const.c).to(u.d)
@@ -148,9 +148,8 @@ class Integrator:
         return 1
 
 
-class L(Time, Integrator):
+class L(Time):
     def __init__(self, error=0.001, band_filter='V', system='VegaMag'):
-        super().__init__(error)
         self.T = T()
         self.wave = Wave(band_filter, system)
         self.system = system
@@ -161,22 +160,19 @@ class L(Time, Integrator):
         eq 1 in Kozyreva paper
         quad documentation: https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.quad.html
         """
-        # n = self.get_steps(self.ltt_integrant, t - self.t_rc(theta), t, (theta, t, L_function))
-        # dx = self.t_rc(theta) / n
-        # return 2 / self.t_rc(theta) * \
-        #        scipy.integrate.simpson([self.ltt_integrant(t_tag, theta, t, L_function) for t_tag in
-        #                                  np.linspace(t - self.t_rc(theta), t, n + 1)],
-        #                                dx=dx)
-        return scipy.integrate.quad(self.ltt_integrant, (t - self.t_rc(theta)).to_value(), t.to_value(),
+        return 2 / self.t_rc(theta).value * \
+               scipy.integrate.quad(self.ltt_integrant, (t - self.t_rc(theta)).to_value(), t.to_value(),
                                     args=(theta, t, L_function))[0]
 
     def ltt_integrant(self, t_tag, theta, t, L_function) -> float:
         """the function inside the integral"""
-        if type(t) is not u.quantity.Quantity:
-            t *= u.d
-        elif type(t_tag) is not u.quantity.Quantity:
-            t_tag *= u.d
+        t = self.check_day(t)
+        t_tag = self.check_day(t_tag)
         return L_function(theta, t_tag) * (1 - (t - t_tag) / self.t_rc(theta))
+
+    @staticmethod
+    def check_day(t):
+        return t*u.d if type(t) is not u.quantity.Quantity else t
 
     def eq_2(self, theta, t, nu):
         """eq 2 in Kozyreva paper, after light travel time, nu is freq"""
@@ -229,8 +225,8 @@ class Magnitude(L):
 
     def get_filtered_abs_mag(self, theta, t):
         """the eq after eq 5 in Kozyreva"""
-        offset = theta[3]
-        t_offset = (t - offset) * u.d
+        offset = self.check_day(theta[3])
+        t_offset = self.check_day(t) - offset
         temp_limit = (h * self.wave.central_freq) / (3 * k * self.T.col(theta, t_offset, self.wave.central_freq))
         use_func = None
         if temp_limit < 0.3:
@@ -240,7 +236,7 @@ class Magnitude(L):
         # and i don't want to make discontinuity
         elif 0.3 < temp_limit:
             use_func = self.absolute_filtered_pseudo_flux
-        return self.to_mag_from_pseudo_flux(self.light_travel_time(theta, t, use_func))
+        return self.to_mag_from_pseudo_flux(self.light_travel_time(theta, t_offset, use_func))
 
     def absolute_filtered_pseudo_flux(self, theta, t):
         return self.to_pseudo_flux_from_mag(self.absolute_mag_filtered(theta, t))
