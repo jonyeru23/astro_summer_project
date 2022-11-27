@@ -252,7 +252,7 @@ class Magnitude(L):
         freq_range = self.wave.get_range_freq()
 
         flux = np.array([self.eq_2(theta, t, nu) for nu in freq_range]) / (
-                4 * np.pi * (10 * u.pc).to_value(u.cm) ** 2)
+                4 * np.pi * distance.to_value(u.cm) ** 2)
 
         wave_range = self.wave.frequency_to_length(freq_range)
 
