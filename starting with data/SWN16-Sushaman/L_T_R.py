@@ -245,11 +245,14 @@ class Magnitude(L):
         return self.to_pseudo_flux_from_mag(self.absolute_mag_filtered(theta, t))
 
     def absolute_mag_filtered(self, theta, t):
-        """to get the flux we need to devide by the star's distance, not the radius of the star."""
+        """
+        to get the flux we need to devide by the star's 10pc, not the radius of the star. becuase we wnat
+        absolute magnitude
+        """
         freq_range = self.wave.get_range_freq()
 
         flux = np.array([self.eq_2(theta, t, nu) for nu in freq_range]) / (
-                4 * np.pi * distance.to_value(u.cm) ** 2)
+                4 * np.pi * (10 * u.pc).to_value(u.cm) ** 2)
 
         wave_range = self.wave.frequency_to_length(freq_range)
 
