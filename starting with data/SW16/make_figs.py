@@ -47,7 +47,7 @@ def main():
     for folder in os.listdir(new_models):
         folder = new_models + '/' + folder
         model = os.listdir(folder)[0]
-        print(model)
+        # print(model)
         if '3.0' in model:
             n = 3
         else:

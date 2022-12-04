@@ -11,16 +11,27 @@ import corner
 import os
 import shutil
 
+"""
+date: 4.12.22
+@author : Jonathan Yerushalmi
 
+main paper: https://ui.adsabs.harvard.edu/abs/2017ApJ...837L...2A/abstract 
+secondary paper:  https://arxiv.org/abs/1607.03700 
+"""
+
+# these sizes are described in the paper
 k = 1
 M_c = 1
-distance = 26.4 * 10**6 * u.pc
+distance = 26.4 * 10 ** 6 * u.pc  ## page 2 : We adopt a distance of 26.4 Mpc and a distance modulus of 32.11 mag to SN 2016gkg
 labels = ["v85", "R13", "M_e", "offset"]
+
+
 # theta = [v85, R13, M_e, offset]
 
 def f_p(n, M_e):
     """
-    returns the ratio between the enitial mass and the core mass.
+    returns the ratio between the initial mass and the core mass.
+    eq 7
     """
     if n == 3 / 2:
         return (M_e / M_c) ** 0.5
@@ -31,6 +42,9 @@ def f_p(n, M_e):
 def L(n, t, theta):
     """
     t - days, M_e - solMass, v85 - vs * 10**-8.5 * cm * s**-1, R13 - R_e * 10**-13 * cm
+    eq 6
+    pay attention!!! D is not correct in the main paper, the correct form is in the secondary paper, where the
+    theory is developed
     """
     v85, R13, M_e, offset = theta
     t_offset = t - offset
@@ -50,6 +64,8 @@ def T(n, t, theta):
     """
     the color temp is given by this function.
     where t is in days and M is in solar masses.
+    Notice the units are in Kalvin
+    eq 8
     """
     v85, R13, M_e, offset = theta
     t_offset = t - offset
@@ -58,7 +74,7 @@ def T(n, t, theta):
     else:
         nums = [1.96, 0.016]
     T = nums[0] * 10 ** 4 * (((v85 * t_offset) ** 2) / (f_p(n, M_e) * (M_e + M_c) * k)) ** nums[1] * (
-                R13 / k) ** 0.25 * t_offset ** -0.5
+            R13 / k) ** 0.25 * t_offset ** -0.5
     return T * u.K
 
 
@@ -66,12 +82,18 @@ def R(n, t, theta):
     """
     gets t in days, then converts the result to rsun
     R^2 = sqrt(L(t)/4pi sigma T^4)
+    eq 5
     """
     sigma_sb = const.sigma_sb.to(u.erg * u.cm ** -2 * u.s ** -1 * u.K ** -4)
     return np.sqrt(L(n, t, theta) / (4 * np.pi * sigma_sb * T(n, t, theta) ** 4)).to(u.solRad)
 
 
 def get_mag(n, t, theta):
+    """
+    We assume a BlackBody radiation. for that we calculate the temp and make an observation in the v band
+    further explanation on this library in https://pysynphot.readthedocs.io/en/latest/spectrum.html
+    here the mag is apparent magnitude
+    """
     mag = []
     for temp in T(n, t, theta).value:
         bb = S.BlackBody(temp)
@@ -99,6 +121,10 @@ def log_prior(theta):
 
 
 def log_likelihood(n, theta, t, meas_mag, meas_mag_err):
+    """
+    both magnitudes are in apparent magnitudes,
+    i convert them to psuedo flux because magnitudes are a logarithmic quantity, and subtracting means dividing.
+    """
     rel_t, rel_mag, rel_mag_err = get_rel_data(t, meas_mag, meas_mag_err, n, theta)
 
     meas_flux = mag_to_flux(rel_mag)
@@ -112,29 +138,46 @@ def log_likelihood(n, theta, t, meas_mag, meas_mag_err):
 
     return -0.5 * np.sum(normalization + chi2)
 
+
 def get_rel_data(t, mag, mag_err, n, theta):
+    """
+    take not to the relevance of the model according to t_bigger_than
+    """
     rel_t = t[t > t_bigger_than(n, theta)]
     rel_mag = mag[(len(t) - len(rel_t)):]
     rel_mag_err = mag_err[(len(t) - len(rel_t)):]
     return rel_t, rel_mag, rel_mag_err
 
+
 def mag_to_flux(mag):
+    """
+    not actual flux, only psuedo
+    """
     return 10 ** (-0.4 * mag)
 
 
 def mag_to_fluxerr(mag, mag_err):
+    """
+    standard error derivation
+    """
     return abs(mag_to_flux(mag) * (-0.4) * np.log(10) * mag_err)
 
 
 def get_chi2(meas, meas_err, expected):
+    """
+    may accept numpy.arrays as well
+    """
     return ((meas - expected) / meas_err) ** 2
 
 
 def get_normalization(meas):
+    """
+    i don't know the reason why we need this part, but Iair said it is important
+    """
     return np.log(2 * np.pi * meas ** 2)
 
 
-def log_postirior(theta, n, t, meas_mag, meas_mag_err):
+def log_posterior(theta, n, t, meas_mag, meas_mag_err):
     lp = log_prior(theta)
     if not np.isfinite(lp):
         return -np.inf
@@ -143,7 +186,7 @@ def log_postirior(theta, n, t, meas_mag, meas_mag_err):
 
 def set_walkers(nwalkers):
     """
-    # initialize walkers -  theta = [v85, R13, M_e, offset]
+    initialize walkers -  theta = [v85, R13, M_e, offset]
     """
     initial_guess = [1.7, 0.4, 0.02, 0.715]
     initial_spread = [0.2, 0.2, 0.002, 0.01]
@@ -152,11 +195,13 @@ def set_walkers(nwalkers):
 
 
 def t_bigger_than(n, theta):
+    """relevance of the model : eq 9"""
     v85, R13, M_e, offset = theta
     return 0.2 * R13 * v85 ** -1 * max(0.5, (R13 ** 0.4 * (f_p(n, M_e) * k * (M_e + M_c) ** -0.2 * v85 ** -0.7)))
 
 
 def t_smaller_than(n, theta):
+    """relevance of the model : eq 10"""
     v85, R13, M_e, offset = theta
     return 7.4 * (R13 / k) ** 0.55
 
@@ -172,18 +217,26 @@ def get_data(file_path, sheet_name):
 
 
 def get_sampler(file_name, n, nwalkers, steps, x, y, yerr):
+    """
+    Numerical way to calculate the minimum chi2, using walkers in the log(probability) space
+    Important: use backend to save the file and access it later, much better than working only on the current files
+    because the computations can take hours-days and you need to run it on the server anyway.
+    """
     initial_pos = set_walkers(nwalkers)
     nwalkers, ndim = initial_pos.shape
 
     backend = emcee.backends.HDFBackend(file_name)
     backend.reset(nwalkers, ndim)
 
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_postirior, backend=backend, args=(n, x, y, yerr))
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, backend=backend, args=(n, x, y, yerr))
 
     sampler.run_mcmc(initial_pos, steps, progress=True)
 
 
 def get_histograms(sampler, file_path, labels, n):
+    """
+    you can find the proper reference in https://emcee.readthedocs.io/en/stable/tutorials/line/
+    """
     plt.clf()
     fig, axes = plt.subplots(4, figsize=(10, 7), sharex=True)
     samples = sampler.get_chain()
@@ -203,6 +256,10 @@ def get_histograms(sampler, file_path, labels, n):
 
 
 def get_lines_dots(flat_samples, x, y, yerr, n, file_path, start=0.01, end=3.5, close_up=False):
+    """
+    basically, you take a random sample of theta's and plot them together, there are examples in the website i
+    references above.
+    """
     plt.clf()
     inds = np.random.randint(len(flat_samples), size=100)
     time = np.linspace(start, end)
@@ -215,7 +272,7 @@ def get_lines_dots(flat_samples, x, y, yerr, n, file_path, start=0.01, end=3.5, 
 
     plt.errorbar(x - offset, y, yerr=yerr, fmt=".k", capsize=0)
 
-    plt.xlabel(f'JD - {2457651.0+offset}[day]')
+    plt.xlabel(f'JD - {2457651.0 + offset}[day]')
     plt.ylabel('V[mag]')
     if 'binning' in file_path:
         plt.title(f'n={n} binning')
@@ -227,6 +284,7 @@ def get_lines_dots(flat_samples, x, y, yerr, n, file_path, start=0.01, end=3.5, 
 
 
 def get_corner(flat_samples, file_path, labels, n):
+    """draws a corner plot"""
     fig = corner.corner(flat_samples, labels=labels)
     fig.savefig(file_path)
 
@@ -238,5 +296,3 @@ def take_h5_files(folder_name):
     for file in os.listdir():
         if 'h5' in file:
             shutil.move(file, f'/{folder_name}')
-
-
