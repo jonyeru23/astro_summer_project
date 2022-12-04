@@ -98,6 +98,10 @@ class Sampler(LogPosterior):
         return np.random.randn(self.nwalkers, self.ndim) * initial_spread + initial_guess
 
     def write_sampler(self, sampler_file_name, steps):
+        """
+        the backend allows to write it to a file, for later use.
+        important - the first argument to self.log_posterior should be theta so that the walkers cna walk properly
+        """
         initial_pos = self.set_walkers()
 
         backend = emcee.backends.HDFBackend(sampler_file_name)
