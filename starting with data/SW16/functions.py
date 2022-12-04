@@ -17,6 +17,8 @@ date: 4.12.22
 
 main paper: https://ui.adsabs.harvard.edu/abs/2017ApJ...837L...2A/abstract 
 secondary paper:  https://arxiv.org/abs/1607.03700 
+
+take note - t - toffset needs to be the correct value.
 """
 
 # these sizes are described in the paper
