@@ -25,3 +25,10 @@ The main libraries i am using and a worth a read: Astropy, Pysynphot, emcee, nnu
 further explanations are in the Readme.md files in the folders and the files themselfs.
 
 I wish you luck! and hope you get to the true answer regarding this supernova!
+
+Important - using pysynphot is a real pain in the ass. 
+
+you need to download a lot of files just like they say and set an ENVIRONMENT variable
+accordingly. When you run it on the nove, you need to set the environment variable every time you run it.
+My recomendation is to download all the files in a place you can find them easily and put the command to set the environment
+variable there as well. Link to installing pysynphot: https://pysynphot.readthedocs.io/en/latest/
